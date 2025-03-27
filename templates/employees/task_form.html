@@ -1,170 +1,170 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ title }} - Lead Management System{% endblock %}
+{% block title %}{% if is_create %}Create Task{% else %}Edit Task{% endif %}{% endblock %}
 
 {% block content %}
-<div class="task-form-container animate__animated animate__fadeIn">
-    <!-- Task Form Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="page-title">
-                <i class="fas fa-tasks me-2"></i>{{ title }}
-            </h1>
-            <p class="text-muted">
-                {% if task %}
-                    Update task information
-                {% else %}
-                    Create a new task and assign it to an employee
-                {% endif %}
-            </p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <a href="{% url 'employees:tasks_list' %}" class="btn btn-outline-secondary animate__animated animate__fadeInRight">
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-tasks me-2 text-purple"></i>
+            {% if is_create %}Create New Task{% else %}Edit Task{% endif %}
+        </h2>
+        <div>
+            <a href="{% url 'employees:task_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
                 <i class="fas fa-arrow-left me-2"></i>Back to Tasks
             </a>
         </div>
     </div>
-
-    <!-- Task Form Card -->
-    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="card-header">
-            <h5 class="mb-0">
-                {% if task %}
-                    <i class="fas fa-edit me-2"></i>Edit Task
-                {% else %}
-                    <i class="fas fa-plus me-2"></i>New Task
-                {% endif %}
-            </h5>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="row">
-                    <!-- Basic Information -->
-                    <div class="col-md-6">
-                        <h6 class="form-section-title">Task Details</h6>
+    
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeIn">
+                <div class="card-header bg-purple text-white py-3">
+                    <h5 class="mb-0">
+                        {% if is_create %}
+                        <i class="fas fa-plus-circle me-2"></i>New Task Details
+                        {% else %}
+                        <i class="fas fa-edit me-2"></i>Edit Task
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
                         
-                        <div class="mb-3">
-                            <label for="{{ form.title.id_for_label }}" class="form-label">Task Title<span class="required-asterisk">*</span></label>
-                            {{ form.title }}
-                            {% if form.title.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.title.errors }}
-                                </div>
-                            {% endif %}
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
                         </div>
+                        {% endif %}
                         
-                        <div class="mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">Description<span class="required-asterisk">*</span></label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.description.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.project.id_for_label }}" class="form-label">Project</label>
-                            {{ form.project }}
-                            {% if form.project.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.project.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Assignment & Scheduling -->
-                    <div class="col-md-6">
-                        <h6 class="form-section-title">Assignment & Schedule</h6>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assigned To<span class="required-asterisk">*</span></label>
-                            {{ form.assigned_to }}
-                            {% if form.assigned_to.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.assigned_to.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.priority.id_for_label }}" class="form-label">Priority<span class="required-asterisk">*</span></label>
-                                {{ form.priority }}
-                                {% if form.priority.errors %}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label text-light">Title*</label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
                                     <div class="text-danger mt-1">
-                                        {{ form.priority.errors }}
+                                        {% for error in form.title.errors %}
+                                        {{ error }}
+                                        {% endfor %}
                                     </div>
-                                {% endif %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.assigned_to.id_for_label }}" class="form-label text-light">Assign To*</label>
+                                    {{ form.assigned_to }}
+                                    {% if form.assigned_to.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.assigned_to.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.status.id_for_label }}" class="form-label text-light">Status</label>
+                                            {{ form.status }}
+                                            {% if form.status.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.status.errors %}
+                                                {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.priority.id_for_label }}" class="form-label text-light">Priority</label>
+                                            {{ form.priority }}
+                                            {% if form.priority.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.priority.errors %}
+                                                {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.start_date.id_for_label }}" class="form-label text-light">Start Date</label>
+                                            {{ form.start_date }}
+                                            {% if form.start_date.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.start_date.errors %}
+                                                {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.due_date.id_for_label }}" class="form-label text-light">Due Date</label>
+                                            {{ form.due_date }}
+                                            {% if form.due_date.errors %}
+                                            <div class="text-danger mt-1">
+                                                {% for error in form.due_date.errors %}
+                                                {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.status.id_for_label }}" class="form-label">Status<span class="required-asterisk">*</span></label>
-                                {{ form.status }}
-                                {% if form.status.errors %}
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label text-light">Description</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
                                     <div class="text-danger mt-1">
-                                        {{ form.status.errors }}
+                                        {% for error in form.description.errors %}
+                                        {{ error }}
+                                        {% endfor %}
                                     </div>
-                                {% endif %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="{{ form.notes.id_for_label }}" class="form-label text-light">Notes</label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.notes.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date<span class="required-asterisk">*</span></label>
-                            {{ form.due_date }}
-                            {% if form.due_date.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.due_date.errors }}
-                                </div>
-                            {% endif %}
+                        <div class="form-group mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-purple">
+                                <i class="fas fa-save me-2"></i>Save Task
+                            </button>
+                            <a href="{% url 'employees:task_list' %}" class="btn btn-outline-light">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
                         </div>
-                    </div>
+                    </form>
                 </div>
-                
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                
-                <!-- Submit Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{% url 'employees:tasks_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </a>
-                    <button type="submit" class="btn btn-accent animate__animated animate__pulse">
-                        <i class="fas fa-save me-2"></i>
-                        {% if task %}
-                            Update Task
-                        {% else %}
-                            Create Task
-                        {% endif %}
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add animation when focusing on form fields
-    const formFields = document.querySelectorAll('.form-control');
-    formFields.forEach(field => {
-        field.addEventListener('focus', function() {
-            this.classList.add('animate__animated', 'animate__pulse');
-        });
-        field.addEventListener('blur', function() {
-            this.classList.remove('animate__animated', 'animate__pulse');
-        });
-    });
-});
-</script>
 {% endblock %}

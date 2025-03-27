@@ -56,10 +56,14 @@ def employee_detail(request, pk):
     # Get salary records
     salaries = Salary.objects.filter(employee=employee).order_by('-year', '-month')[:12]
     
+    # Get task records
+    tasks = EmployeeTask.objects.filter(assigned_to=employee).order_by('-created_at')[:10]
+    
     context = {
         'employee': employee,
         'attendances': attendances,
         'salaries': salaries,
+        'tasks': tasks,
     }
     
     return render(request, 'employees/employee_detail.html', context)
@@ -272,7 +276,7 @@ def task_list(request):
     user_profile = request.user.userprofile
     
     # Determine which tasks to show based on user role
-    if user_profile.is_admin() or user_profile.is_manager():
+    if user_profile.is_admin or user_profile.is_manager:
         # Admins and managers can see all tasks
         tasks = EmployeeTask.objects.all()
         
@@ -296,7 +300,7 @@ def task_list(request):
     
     # Get all employees for filter dropdown (if user is admin/manager)
     employees = None
-    if user_profile.is_admin() or user_profile.is_manager():
+    if user_profile.is_admin or user_profile.is_manager:
         employees = User.objects.all()
     
     context = {
@@ -317,7 +321,7 @@ def task_detail(request, pk):
     
     # Check permissions
     user_profile = request.user.userprofile
-    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_to == request.user or task.assigned_by == request.user):
+    if not (user_profile.is_admin or user_profile.is_manager or task.assigned_to == request.user or task.assigned_by == request.user):
         messages.error(request, "You don't have permission to view this task.")
         return redirect('employees:task_list')
     
@@ -355,7 +359,7 @@ def task_update(request, pk):
     
     # Check permissions
     user_profile = request.user.userprofile
-    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_by == request.user):
+    if not (user_profile.is_admin or user_profile.is_manager or task.assigned_by == request.user):
         messages.error(request, "You don't have permission to update this task.")
         return redirect('employees:task_list')
     
@@ -382,7 +386,7 @@ def task_complete(request, pk):
     
     # Check permissions (only assigned employee or admin/manager can mark as complete)
     user_profile = request.user.userprofile
-    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_to == request.user):
+    if not (user_profile.is_admin or user_profile.is_manager or task.assigned_to == request.user):
         messages.error(request, "You don't have permission to complete this task.")
         return redirect('employees:task_list')
     

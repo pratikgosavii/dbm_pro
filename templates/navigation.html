@@ -43,6 +43,11 @@
             <i class="fas fa-clock me-2 text-primary"></i>Attendance
         </a>
         
+        <!-- All users can view tasks -->
+        <a href="{% url 'employees:task_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/tasks/' in request.path %}active{% endif %}">
+            <i class="fas fa-tasks me-2 text-primary"></i>Tasks
+        </a>
+        
         {% if user.userprofile.is_admin or user.userprofile.is_manager %}
         <a href="{% url 'reports:sales_report' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'reports' and '/sales/' in request.path %}active{% endif %}">
             <i class="fas fa-chart-bar me-2 text-primary"></i>Sales Report

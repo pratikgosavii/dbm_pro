@@ -61,5 +61,5 @@ class EmployeeTaskForm(forms.ModelForm):
     
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if user and not user.userprofile.is_admin() and not user.userprofile.is_manager():
+        if user and not user.userprofile.is_admin and not user.userprofile.is_manager:
             self.fields['assigned_to'].queryset = User.objects.filter(pk=user.pk)
