@@ -68,20 +68,22 @@ class Attendance(models.Model):
     
     def __str__(self):
         return f"{self.employee.username} - {self.date} - {self.get_status_display()}"
-    
+        
     @property
     def hours_worked(self):
+        """Calculate hours worked based on punch in and punch out times"""
         if self.punch_in_time and self.punch_out_time:
             punch_in_dt = datetime.datetime.combine(self.date, self.punch_in_time)
             punch_out_dt = datetime.datetime.combine(self.date, self.punch_out_time)
             
+            # If punch out is earlier than punch in (crossed midnight), add a day
             if punch_out_dt < punch_in_dt:
-                # If punch out is next day
                 punch_out_dt += datetime.timedelta(days=1)
-            
+                
+            # Calculate the time difference in hours
             duration = punch_out_dt - punch_in_dt
             return round(duration.total_seconds() / 3600, 2)
-        return 0
+        return 0.0
 
 class Salary(models.Model):
     STATUS_CHOICES = (

@@ -99,10 +99,10 @@ def attendance_log(request):
     # Order by most recent first
     attendances = attendances.order_by('-date')
     
-    # Get all employees for the filter dropdown (for admins/managers)
+    # Get all employees for the filter dropdown (admins/managers only)
     employees = None
     if user_profile.is_admin or user_profile.is_ops_manager:
-        employees = User.objects.all()
+        employees = User.objects.all().order_by('username')
     
     context = {
         'attendances': attendances,
@@ -112,89 +112,122 @@ def attendance_log(request):
         'end_date': end_date,
     }
     
-    return render(request, 'employees/punch_log.html', context)
+    return render(request, 'employees/attendance_log.html', context)
 
 @login_required
 def punch_in(request):
+    """Handle employee punch in"""
+    # Don't allow admins to punch in/out
+    if request.user.userprofile.is_admin:
+        messages.warning(request, "Administrators don't need to punch in/out.")
+        return redirect('dashboard:index')
+        
     today = timezone.now().date()
+    current_time = timezone.now().time()
     
     # Check if already punched in today
-    attendance, created = Attendance.objects.get_or_create(
-        employee=request.user,
-        date=today,
-        defaults={
-            'punch_in_time': timezone.now().time(),
-            'status': 'present'
-        }
-    )
-    
-    if not created:
+    try:
+        attendance = Attendance.objects.get(employee=request.user, date=today)
         if attendance.punch_in_time:
-            messages.info(request, "You have already punched in today.")
+            messages.warning(request, "You've already punched in today!")
         else:
-            attendance.punch_in_time = timezone.now().time()
+            # Update the punch in time
+            attendance.punch_in_time = current_time
             attendance.save()
-            messages.success(request, "Punch-in recorded successfully.")
-    else:
-        messages.success(request, "Punch-in recorded successfully.")
+            messages.success(request, f"Punched in successfully at {current_time.strftime('%H:%M')}.")
+    except Attendance.DoesNotExist:
+        # Create new attendance record
+        attendance = Attendance.objects.create(
+            employee=request.user,
+            date=today,
+            punch_in_time=current_time,
+            status='present'
+        )
+        messages.success(request, f"Punched in successfully at {current_time.strftime('%H:%M')}.")
     
+    # Redirect back to the dashboard
     return redirect('dashboard:index')
 
 @login_required
 def punch_out(request):
+    """Handle employee punch out"""
+    # Don't allow admins to punch in/out
+    if request.user.userprofile.is_admin:
+        messages.warning(request, "Administrators don't need to punch in/out.")
+        return redirect('dashboard:index')
+        
     today = timezone.now().date()
+    current_time = timezone.now().time()
     
+    # Check if punched in today
     try:
         attendance = Attendance.objects.get(employee=request.user, date=today)
-        
         if not attendance.punch_in_time:
-            messages.error(request, "You need to punch in first.")
+            messages.error(request, "You need to punch in first before punching out!")
         elif attendance.punch_out_time:
-            messages.info(request, "You have already punched out today.")
+            messages.warning(request, "You've already punched out today!")
         else:
-            attendance.punch_out_time = timezone.now().time()
+            # Update the punch out time
+            attendance.punch_out_time = current_time
             attendance.save()
-            messages.success(request, "Punch-out recorded successfully.")
+            
+            # Calculate hours worked
+            hours = attendance.hours_worked
+            
+            if hours < 9:
+                messages.warning(request, f"Punched out at {current_time.strftime('%H:%M')}. You've worked {hours:.2f} hours. Daily requirement: 9 hours.")
+            else:
+                messages.success(request, f"Punched out at {current_time.strftime('%H:%M')}. You've completed your required 9 hours today!")
     except Attendance.DoesNotExist:
-        messages.error(request, "You need to punch in first.")
+        messages.error(request, "You need to punch in first before punching out!")
     
+    # Redirect back to the dashboard
     return redirect('dashboard:index')
 
 @login_required
 def salary_list(request):
-    # Check permission
+    # Show all salaries for admins/managers, but only own salary for others
     user_profile = request.user.userprofile
-    if not (user_profile.is_admin or user_profile.is_ops_manager):
-        messages.error(request, "You don't have permission to view salaries.")
-        return redirect('dashboard:index')
     
-    salaries = Salary.objects.all()
+    # Initialize filter variables
+    employee_id = None
+    month = None
+    year = None
+    status = None
     
-    # Filter by employee
-    employee_id = request.GET.get('employee')
-    if employee_id:
-        salaries = salaries.filter(employee_id=employee_id)
-    
-    # Filter by month and year
-    month = request.GET.get('month')
-    year = request.GET.get('year')
-    
-    if month:
-        salaries = salaries.filter(month=month)
-    
-    if year:
-        salaries = salaries.filter(year=year)
-    
-    # Filter by status
-    status = request.GET.get('status')
-    if status:
-        salaries = salaries.filter(status=status)
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        salaries = Salary.objects.all()
+        
+        # Filter by employee
+        employee_id = request.GET.get('employee')
+        if employee_id:
+            salaries = salaries.filter(employee_id=employee_id)
+        
+        # Filter by month
+        month = request.GET.get('month')
+        if month:
+            salaries = salaries.filter(month=month)
+        
+        # Filter by year
+        year = request.GET.get('year')
+        if year:
+            salaries = salaries.filter(year=year)
+        
+        # Filter by status
+        status = request.GET.get('status')
+        if status:
+            salaries = salaries.filter(status=status)
+    else:
+        # Regular employees can only see their own salaries
+        salaries = Salary.objects.filter(employee=request.user)
     
     # Order by most recent first
     salaries = salaries.order_by('-year', '-month')
     
-    # Get all employees for the filter dropdown
-    employees = User.objects.all()
+    # Get all employees for the filter dropdown (admins/managers only)
+    employees = None
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        employees = User.objects.all().order_by('username')
     
     context = {
         'salaries': salaries,
@@ -304,19 +337,22 @@ def task_list(request):
     if priority:
         tasks = tasks.filter(priority=priority)
     
-    # Get all employees for filter dropdown (if user is admin/manager)
+    # Order by priority and due date
+    tasks = tasks.order_by('-priority', 'due_date', 'status')
+    
+    # Get all employees for the filter dropdown (admins/managers only)
     employees = None
     if user_profile.is_admin or user_profile.is_manager:
-        employees = User.objects.all()
+        employees = User.objects.all().order_by('username')
     
     context = {
         'tasks': tasks,
         'employees': employees,
-        'current_employee': request.GET.get('employee'),
+        'current_employee': employee_id,
         'current_status': status,
         'current_priority': priority,
         'status_choices': EmployeeTask.STATUS_CHOICES,
-        'priority_choices': EmployeeTask.PRIORITY_CHOICES
+        'priority_choices': EmployeeTask.PRIORITY_CHOICES,
     }
     
     return render(request, 'employees/task_list.html', context)
@@ -325,20 +361,21 @@ def task_list(request):
 def task_detail(request, pk):
     task = get_object_or_404(EmployeeTask, pk=pk)
     
-    # Check permissions
+    # Check permission
     user_profile = request.user.userprofile
     if not (user_profile.is_admin or user_profile.is_manager or task.assigned_to == request.user or task.assigned_by == request.user):
         messages.error(request, "You don't have permission to view this task.")
         return redirect('employees:task_list')
     
     context = {
-        'task': task
+        'task': task,
     }
     
     return render(request, 'employees/task_detail.html', context)
 
 @login_required
 def task_create(request):
+    # Everyone can create tasks, but admins/managers can assign to anyone
     user_profile = request.user.userprofile
     
     if request.method == 'POST':
