@@ -279,17 +279,20 @@ def task_list(request):
     user_profile = request.user.userprofile
     
     # Determine which tasks to show based on user role
+    employee_id = request.GET.get('employee')
+    
     if user_profile.is_admin or user_profile.is_manager:
         # Admins and managers can see all tasks
-        tasks = EmployeeTask.objects.all()
-        
-        # Filter by assigned employee if specified
-        employee_id = request.GET.get('employee')
         if employee_id:
-            tasks = tasks.filter(assigned_to_id=employee_id)
+            # Filter by assigned employee if specified
+            tasks = EmployeeTask.objects.filter(assigned_to_id=employee_id)
+        else:
+            tasks = EmployeeTask.objects.all()
     else:
-        # Regular users can only see their own tasks
-        tasks = EmployeeTask.objects.filter(assigned_to=request.user)
+        # Regular users can see tasks they've been assigned or that they've created
+        tasks = EmployeeTask.objects.filter(
+            Q(assigned_to=request.user) | Q(assigned_by=request.user)
+        )
     
     # Filter by status if specified
     status = request.GET.get('status')
