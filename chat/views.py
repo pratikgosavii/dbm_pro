@@ -12,7 +12,7 @@ from .forms import ChatGroupForm, MessageForm, DirectMessageForm
 def inbox(request):
     """View for user's message inbox"""
     # Get user's chat groups
-    user_groups = request.user.chat_groups.all()
+    groups = request.user.chat_groups.all()
     
     # Get direct messages (both sent and received)
     direct_messages = Message.objects.filter(
@@ -20,18 +20,69 @@ def inbox(request):
         group__isnull=True
     ).order_by('timestamp')
     
-    # Get unique conversation partners
-    conversation_partners = set()
+    # Process conversations for template
+    conversation_users = set()
     for msg in direct_messages:
         if msg.sender == request.user:
-            conversation_partners.add(msg.receiver)
+            conversation_users.add(msg.receiver)
         else:
-            conversation_partners.add(msg.sender)
+            conversation_users.add(msg.sender)
+    
+    # Prepare conversation data
+    recent_conversations = []
+    for user in conversation_users:
+        # Get the most recent message in this conversation
+        last_message = Message.objects.filter(
+            (Q(sender=request.user) & Q(receiver=user)) |
+            (Q(sender=user) & Q(receiver=request.user)),
+            group__isnull=True
+        ).order_by('-timestamp').first()
+        
+        # Count unread messages
+        unread_count = Message.objects.filter(
+            sender=user,
+            receiver=request.user,
+            is_read=False,
+            group__isnull=True
+        ).count()
+        
+        recent_conversations.append({
+            'user': user,
+            'last_message': last_message,
+            'unread_count': unread_count
+        })
+    
+    # Sort conversations by most recent message timestamp
+    recent_conversations.sort(key=lambda x: x['last_message'].timestamp if x['last_message'] else None, reverse=True)
+    
+    # Process groups for the template
+    group_data = []
+    for group in groups:
+        # Get the most recent message in this group
+        last_message = Message.objects.filter(group=group).order_by('-timestamp').first()
+        
+        # Count unread messages (for now a simple count of messages not sent by the user)
+        unread_count = Message.objects.filter(
+            group=group,
+            sender__isnull=False,  # Ensure we're not counting system messages
+            is_read=False
+        ).exclude(sender=request.user).count()  # Don't count user's own messages
+        
+        group_data.append({
+            'id': group.id,
+            'name': group.name,
+            'last_message': last_message,
+            'unread_count': unread_count
+        })
+    
+    # Sort groups by most recent message timestamp
+    group_data.sort(key=lambda x: x['last_message'].timestamp if x['last_message'] else None, reverse=True)
     
     context = {
-        'user_groups': user_groups,
-        'conversation_partners': conversation_partners,
+        'recent_conversations': recent_conversations,
+        'groups': group_data,
     }
+    
     return render(request, 'chat/inbox.html', context)
 
 @login_required
@@ -106,6 +157,12 @@ def group_chat(request, group_id):
     
     # Get group messages
     group_messages = group.messages.all().order_by('timestamp')
+    
+    # Mark messages as read
+    unread_messages = group_messages.filter(is_read=False).exclude(sender=request.user)
+    for msg in unread_messages:
+        msg.is_read = True
+        msg.save()
     
     # Form for sending a new message
     if request.method == 'POST':
