@@ -75,6 +75,82 @@
         </div>
     </div>
 
+    {% if user.is_authenticated %}
+    <!-- LinkedIn-style Chat Icons -->
+    <div class="chat-icon-container">
+        <div class="chat-icon" id="chatIcon">
+            <i class="fas fa-comments"></i>
+            <div class="chat-notification" id="chatNotification" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Chat Contacts Popup -->
+    <div class="chat-contacts-popup" id="chatContactsPopup">
+        <div class="contacts-header">
+            <div class="contacts-title">Messages</div>
+            <button class="chat-control-btn" id="closeContactsBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="contacts-search">
+            <input type="text" class="contacts-search-input" placeholder="Search contacts...">
+        </div>
+        <div class="contacts-list">
+            {% for conversation in recent_conversations %}
+            <div class="contact-item" data-user-id="{{ conversation.user.id }}">
+                <div class="contact-avatar">
+                    {% if conversation.user.userprofile.profile_picture %}
+                    <img src="{{ conversation.user.userprofile.profile_picture }}" alt="{{ conversation.user.get_full_name }}" width="36" height="36">
+                    {% else %}
+                    {{ conversation.user.first_name|first }}{{ conversation.user.last_name|first }}
+                    {% endif %}
+                </div>
+                <div class="contact-info">
+                    <div class="contact-name">{{ conversation.user.get_full_name|default:conversation.user.username }}</div>
+                    <div class="contact-status">
+                        {% if conversation.last_message %}
+                        {{ conversation.last_message.content|truncatechars:20 }}
+                        {% else %}
+                        Start a conversation
+                        {% endif %}
+                    </div>
+                </div>
+                {% if conversation.unread_count > 0 %}
+                <div class="contact-notification"></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chat Popup -->
+    <div class="chat-popup" id="chatPopup">
+        <div class="chat-header" id="chatHeader">
+            <div class="chat-header-info">
+                <div class="chat-avatar" id="chatRecipientAvatar">JD</div>
+                <div class="chat-title" id="chatRecipientName">John Doe</div>
+            </div>
+            <div class="chat-controls">
+                <button class="chat-control-btn" id="minimizeChatBtn">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="chat-control-btn" id="closeChatBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="chat-input-container">
+            <textarea class="chat-input" id="chatInput" placeholder="Type a message..."></textarea>
+            <button class="chat-send-btn" id="sendMessageBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -84,6 +160,198 @@
     <!-- Custom JS -->
     <script src="/static/js/custom.js"></script>
     <script src="/static/js/charts.js"></script>
+    
+    {% if user.is_authenticated %}
+    <!-- LinkedIn-style Chat JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chat elements
+            const chatIcon = document.getElementById('chatIcon');
+            const chatNotification = document.getElementById('chatNotification');
+            const chatContactsPopup = document.getElementById('chatContactsPopup');
+            const closeContactsBtn = document.getElementById('closeContactsBtn');
+            const chatPopup = document.getElementById('chatPopup');
+            const chatHeader = document.getElementById('chatHeader');
+            const minimizeChatBtn = document.getElementById('minimizeChatBtn');
+            const closeChatBtn = document.getElementById('closeChatBtn');
+            const chatRecipientName = document.getElementById('chatRecipientName');
+            const chatRecipientAvatar = document.getElementById('chatRecipientAvatar');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendMessageBtn = document.getElementById('sendMessageBtn');
+            const contactItems = document.querySelectorAll('.contact-item');
+            
+            let currentChatUserId = null;
+            let chatMinimized = false;
+            
+            // Toggle contacts popup
+            chatIcon.addEventListener('click', function() {
+                if (chatContactsPopup.classList.contains('active')) {
+                    chatContactsPopup.classList.remove('active');
+                } else {
+                    chatContactsPopup.classList.add('active');
+                    // Hide the notification when opening contacts
+                    chatNotification.style.display = 'none';
+                }
+            });
+            
+            // Close contacts popup
+            closeContactsBtn.addEventListener('click', function() {
+                chatContactsPopup.classList.remove('active');
+            });
+            
+            // Open chat with selected contact
+            contactItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const userName = this.querySelector('.contact-name').textContent;
+                    const userInitials = userName.split(' ').map(name => name[0]).join('');
+                    
+                    currentChatUserId = userId;
+                    chatRecipientName.textContent = userName;
+                    chatRecipientAvatar.textContent = userInitials;
+                    
+                    // Load the messages
+                    loadMessages(userId);
+                    
+                    // Hide contacts and show chat
+                    chatContactsPopup.classList.remove('active');
+                    chatPopup.classList.add('active');
+                    chatMinimized = false;
+                    
+                    // Remove notification from this contact
+                    const notification = this.querySelector('.contact-notification');
+                    if (notification) {
+                        notification.remove();
+                    }
+                });
+            });
+            
+            // Toggle chat popup visibility when clicking header
+            chatHeader.addEventListener('click', function(e) {
+                // Only toggle if not clicking the control buttons
+                if (!e.target.closest('.chat-control-btn')) {
+                    if (chatMinimized) {
+                        chatPopup.classList.add('active');
+                        chatMinimized = false;
+                    } else {
+                        chatPopup.classList.remove('active');
+                        chatMinimized = true;
+                    }
+                }
+            });
+            
+            // Minimize chat
+            minimizeChatBtn.addEventListener('click', function() {
+                chatPopup.classList.remove('active');
+                chatMinimized = true;
+            });
+            
+            // Close chat
+            closeChatBtn.addEventListener('click', function() {
+                chatPopup.classList.remove('active');
+                currentChatUserId = null;
+                chatMinimized = false;
+            });
+            
+            // Send message
+            sendMessageBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message && currentChatUserId) {
+                    // Add message to the chat
+                    addMessageToChatUI({
+                        sender: 'me',
+                        content: message,
+                        timestamp: new Date()
+                    });
+                    
+                    // Send message to the server
+                    // This would require an AJAX call to send the message
+                    // For now, let's just clear the input
+                    chatInput.value = '';
+                    
+                    // Scroll to the bottom of the chat
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }
+            
+            function loadMessages(userId) {
+                // Clear the messages
+                chatMessages.innerHTML = '';
+                
+                // This would typically be an AJAX call to fetch messages
+                // For demo, let's add some dummy messages
+                addMessageToChatUI({
+                    sender: 'other',
+                    content: 'Hi there! How can I help you?',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 5) // 5 minutes ago
+                });
+                
+                addMessageToChatUI({
+                    sender: 'me',
+                    content: 'I just wanted to check in about the latest project updates.',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 4) // 4 minutes ago
+                });
+                
+                addMessageToChatUI({
+                    sender: 'other',
+                    content: 'Sure! We\'re making good progress. The development phase is almost complete.',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 3) // 3 minutes ago
+                });
+            }
+            
+            function addMessageToChatUI(message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('chat-message');
+                
+                if (message.sender === 'me') {
+                    messageElement.classList.add('chat-message-sender');
+                } else {
+                    messageElement.classList.add('chat-message-receiver');
+                }
+                
+                // Format timestamp
+                const formattedTime = formatTime(message.timestamp);
+                
+                messageElement.innerHTML = `
+                    ${message.content}
+                    <span class="chat-timestamp">${formattedTime}</span>
+                `;
+                
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            // Simulate new message notifications (showing red dot)
+            setTimeout(() => {
+                chatNotification.style.display = 'block';
+            }, 5000);
+            
+            // Check for active conversations on page load
+            function checkForActiveConversations() {
+                // This would typically be an AJAX call to check for unread messages
+                // For demo purposes, let's just show the notification
+                chatNotification.style.display = 'block';
+            }
+            
+            // Initialize chat when page loads
+            checkForActiveConversations();
+        });
+    </script>
+    {% endif %}
     
     {% block extra_js %}{% endblock %}
 </body>

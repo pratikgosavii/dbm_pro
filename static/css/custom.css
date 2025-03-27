@@ -1,26 +1,30 @@
 /* 
 * Custom styling for Lead Management System
-* Dark Blue/Light Blue Theme with Dark Text
+* Dark Blue/Light Blue Theme with High Contrast
 */
 
 :root {
-    --primary: #1a3a6c;       /* Dark Blue */
-    --primary-light: #2c5eaa; /* Medium Blue */
-    --primary-dark: #0d2249;  /* Very Dark Blue */
+    --primary: #0c2b5b;       /* Darker Blue for better contrast */
+    --primary-light: #1e4a8f; /* Medium Blue */
+    --primary-dark: #071a38;  /* Very Dark Blue */
     --secondary: #4a86e8;     /* Light Blue */
     --secondary-light: #6ba1ff;
-    --accent: #ff6b6b;        /* Vibrant Red-Orange */
+    --accent: #ff4757;        /* Vibrant Red */
     --dark-bg: #162c4e;       /* Dark Blue Background */
-    --light-bg: #e9f0fb;      /* Very Light Blue */
+    --light-bg: #f4f7fc;      /* Very Light Blue - lighter for better contrast */
     --light-secondary: #d1e3ff;
     --light-tertiary: #b8d1ff;
-    --text-dark: #1a1a1a;     /* Almost Black */
+    --card-bg: #ffffff;       /* White for card backgrounds */
+    --text-dark: #000000;     /* Black for maximum readability */
+    --text-white: #ffffff;    /* White text */
     --text-medium: #333333;   /* Dark Grey */
     --text-muted: #555555;    /* Medium Grey */
     --success: #28a745;       /* Green */
     --warning: #ffc107;       /* Yellow */
-    --danger: #dc3545;        /* Red */
-    --info: #17a2b8;          /* Teal */
+    --danger: #f53b57;        /* Bright Red for notifications */
+    --info: #0abde3;          /* Bright Blue */
+    --border-color: #d1dbe8;  /* Light border color */
+    --notification-dot: #ff3838; /* Bright red notification dot */
 }
 
 /* General Styles */
@@ -276,60 +280,321 @@ textarea.form-control {
     margin-bottom: 1rem !important;
 }
 
-/* Chat System Styling - Make it smaller and more compact */
-.chat-container {
-    height: 60vh;
-    max-height: 600px;
-    overflow-y: auto;
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 0.5rem;
+/* LinkedIn-style Chat System */
+
+/* Chat icons fixed at the bottom */
+.chat-icon-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: row-reverse;
+    z-index: 1000;
+}
+
+.chat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.chat-icon:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Notification dot */
+.chat-notification {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: var(--notification-dot);
+    border: 2px solid white;
+}
+
+/* Chat popup window */
+.chat-popup {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    height: 450px;
     background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    transform-origin: bottom right;
+    transform: scale(0);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.chat-popup.active {
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Chat header */
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background-color: var(--primary);
+    color: white;
+    cursor: pointer;
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+}
+
+.chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    background-color: var(--light-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.chat-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.chat-controls {
+    display: flex;
+}
+
+.chat-control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-left: 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.chat-control-btn:hover {
+    opacity: 1;
+}
+
+/* Chat messages area */
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f5f7fb;
 }
 
 .chat-message {
-    padding: 0.7rem;
-    margin: 0.5rem;
-    border-radius: 0.5rem;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 16px;
     max-width: 80%;
+    position: relative;
+    clear: both;
+    word-wrap: break-word;
 }
 
 .chat-message-sender {
-    background-color: var(--secondary);
+    background-color: var(--primary-light);
     color: white;
-    align-self: flex-end;
-    margin-left: auto;
+    float: right;
+    border-bottom-right-radius: 4px;
 }
 
 .chat-message-receiver {
-    background-color: var(--light-secondary);
+    background-color: white;
     color: var(--text-dark);
-    align-self: flex-start;
-    margin-right: auto;
+    float: left;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.chat-timestamp {
+    font-size: 0.65rem;
+    margin-top: 4px;
+    opacity: 0.7;
+    display: block;
+    text-align: right;
+}
+
+/* Chat input area */
+.chat-input-container {
+    padding: 10px;
+    border-top: 1px solid #eaeaea;
+    background-color: white;
+    display: flex;
+    align-items: center;
 }
 
 .chat-input {
-    padding: 0.5rem;
-    border-top: 1px solid rgba(0,0,0,0.1);
-}
-
-.chat-sidebar {
-    height: 60vh;
-    max-height: 600px;
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 20px;
+    outline: none;
+    resize: none;
+    max-height: 80px;
     overflow-y: auto;
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 0.5rem;
-    background-color: white;
 }
 
-.chat-contact {
-    padding: 0.5rem 1rem;
+.chat-input:focus {
+    border-color: var(--primary);
+}
+
+.chat-send-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-left: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.chat-contact:hover, .chat-contact.active {
+.chat-send-btn:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* Chat contacts list popup */
+.chat-contacts-popup {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 280px;
+    height: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    overflow: hidden;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    transform-origin: bottom right;
+    transform: scale(0);
+    opacity: 0;
+    visibility: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-contacts-popup.active {
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+.contacts-header {
+    padding: 12px 15px;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contacts-title {
+    font-weight: 600;
+}
+
+.contacts-search {
+    padding: 10px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.contacts-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 20px;
+    outline: none;
+}
+
+.contacts-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.contact-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.contact-item:hover {
     background-color: var(--light-secondary);
+}
+
+.contact-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    background-color: var(--light-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.contact-status {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.contact-notification {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--notification-dot);
 }
 
 /* Card header improvement */
