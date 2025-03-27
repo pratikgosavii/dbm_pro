@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Log{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attendance-status {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .status-present {
+        background-color: rgba(var(--bs-success-rgb), 0.15);
+        color: var(--bs-success);
+    }
+    .status-absent {
+        background-color: rgba(var(--bs-danger-rgb), 0.15);
+        color: var(--bs-danger);
+    }
+    .status-half_day {
+        background-color: rgba(var(--bs-warning-rgb), 0.15);
+        color: var(--bs-warning);
+    }
+    .status-late {
+        background-color: rgba(var(--bs-info-rgb), 0.15);
+        color: var(--bs-info);
+    }
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+    .attendance-filters {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .attendance-list {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Attendance Log</h1>
+        
+        {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
+        <a href="#" class="btn btn-sm btn-primary">
+            <i class="fas fa-file-export me-1"></i> Export Report
+        </a>
+        {% endif %}
+    </div>
+    
+    <!-- Filters -->
+    <div class="attendance-filters mb-4 animate__animated animate__fadeIn">
+        <form method="get" class="row g-3">
+            {% if employees %}
+            <div class="col-md-3">
+                <label for="employee" class="form-label">Employee</label>
+                <select name="employee" id="employee" class="form-select">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if current_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+                        {{ emp.get_full_name|default:emp.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{% url 'employees:attendance_log' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Attendance List -->
+    <div class="row attendance-list">
+        {% if attendances %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Date</th>
+                                    {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
+                                    <th scope="col">Employee</th>
+                                    {% endif %}
+                                    <th scope="col">Punch In</th>
+                                    <th scope="col">Punch Out</th>
+                                    <th scope="col">Hours</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in attendances %}
+                                <tr>
+                                    <td>{{ attendance.date|date:"d M, Y" }}</td>
+                                    
+                                    {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
+                                    <td>
+                                        <a href="{% url 'employees:employee_detail' attendance.employee.id %}">
+                                            {{ attendance.employee.get_full_name|default:attendance.employee.username }}
+                                        </a>
+                                    </td>
+                                    {% endif %}
+                                    
+                                    <td>
+                                        {% if attendance.punch_in_time %}
+                                        {{ attendance.punch_in_time|time:"H:i" }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if attendance.punch_out_time %}
+                                        {{ attendance.punch_out_time|time:"H:i" }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if attendance.punch_in_time and attendance.punch_out_time %}
+                                        <span class="{% if attendance.hours_worked < 9 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ attendance.hours_worked|floatformat:2 }}
+                                            {% if attendance.hours_worked >= 9 %}
+                                            <i class="fas fa-check-circle small"></i>
+                                            {% endif %}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <span class="attendance-status status-{{ attendance.status }}">
+                                            {{ attendance.get_status_display }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if attendance.notes %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                data-bs-toggle="tooltip" title="{{ attendance.notes }}">
+                                            <i class="fas fa-sticky-note"></i>
+                                        </button>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5>No attendance records found</h5>
+                    <p class="text-muted">
+                        {% if start_date or end_date or current_employee %}
+                        Try changing your filter criteria
+                        {% else %}
+                        No attendance records available for the selected period
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Add animation to rows when they come into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated', 'animate__fadeIn');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        document.querySelectorAll('tbody tr').forEach(row => {
+            observer.observe(row);
+        });
+    });
+</script>
+{% endblock %}
