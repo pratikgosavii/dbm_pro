@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Start New Conversation{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm fade-in">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Start New Conversation</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'chat:start_conversation' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.receiver.id_for_label }}" class="form-label">Select User</label>
+                            {{ form.receiver }}
+                            {% if form.receiver.errors %}
+                                <div class="text-danger">
+                                    {{ form.receiver.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Message</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'chat:inbox' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Inbox
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to the form elements
+        const formElements = document.querySelectorAll('form .mb-3');
+        formElements.forEach((element, index) => {
+            element.style.opacity = 0;
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                element.style.opacity = 1;
+                element.style.transform = 'translateY(0)';
+            }, 100 * (index + 1));
+        });
+
+        // Add animation to the form buttons
+        const formButtons = document.querySelector('form .d-flex');
+        if (formButtons) {
+            formButtons.style.opacity = 0;
+            formButtons.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+                formButtons.style.opacity = 1;
+            }, 100 * (formElements.length + 1));
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}

@@ -35,7 +35,15 @@ def lead_list(request):
     # Filter by status
     status_id = request.GET.get('status')
     if status_id:
-        leads = leads.filter(status_id=status_id)
+        if status_id == 'unassigned':
+            leads = leads.filter(status__isnull=True)
+        else:
+            try:
+                status_id_int = int(status_id)
+                leads = leads.filter(status_id=status_id_int)
+            except ValueError:
+                # In case of invalid status_id, just ignore the filter
+                pass
     
     # Filter by source
     source_id = request.GET.get('source')
@@ -178,7 +186,15 @@ def lead_export(request):
     # Filter by status
     status_id = request.GET.get('status')
     if status_id:
-        leads = leads.filter(status_id=status_id)
+        if status_id == 'unassigned':
+            leads = leads.filter(status__isnull=True)
+        else:
+            try:
+                status_id_int = int(status_id)
+                leads = leads.filter(status_id=status_id_int)
+            except ValueError:
+                # In case of invalid status_id, just ignore the filter
+                pass
     
     # Filter by source
     source_id = request.GET.get('source')
