@@ -42,7 +42,11 @@ body {
 }
 
 .text-dark {
-    color: var(--text-dark) !important;
+    color: black !important;
+}
+
+.bg-dark p, .bg-black p {
+    color: white !important;
 }
 
 .text-primary {
@@ -202,7 +206,7 @@ body {
 
 .form-label {
     font-weight: 600;
-    color: var(--text-dark);
+    color: black;
     margin-bottom: 0.5rem;
     font-size: 1rem;
     display: block;
@@ -246,7 +250,7 @@ body {
 /* Enhanced form field labels */
 label {
     font-weight: 600;
-    color: var(--text-dark);
+    color: black;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -870,7 +874,7 @@ textarea.form-control {
 
 .table thead th {
     border-bottom: 2px solid var(--secondary) !important;
-    color: white !important;
+    color: black !important;
 }
 
 /* Responsive tables */
