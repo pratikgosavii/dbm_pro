@@ -395,25 +395,139 @@ const Toast = {
 };
 
 /**
- * Handle dark theme consistently
- * Ensures dark theme is applied on all pages
+ * Handle grey theme consistently
+ * Ensures grey theme is applied on all pages
  */
-function applyDarkTheme() {
-    document.body.classList.add('bg-dark', 'text-light');
+function applyGreyTheme() {
+    document.body.classList.add('bg-grey', 'text-light');
     
-    // Ensure tables are dark themed
-    document.querySelectorAll('table').forEach(table => {
-        table.classList.add('table-dark');
+    // Add custom animation classes to elements
+    document.querySelectorAll('.card, .alert, .btn').forEach(element => {
+        element.classList.add('animate__animated');
+        
+        // Add hover animation for buttons
+        if (element.classList.contains('btn')) {
+            element.addEventListener('mouseenter', function() {
+                this.classList.add('animate__pulse');
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                this.classList.remove('animate__pulse');
+            });
+        }
     });
     
-    // Ensure cards have dark background
-    document.querySelectorAll('.card').forEach(card => {
-        if (!card.classList.contains('bg-dark')) {
-            card.classList.add('bg-dark');
+    // Ensure tables are themed correctly
+    document.querySelectorAll('table').forEach(table => {
+        table.classList.add('table-dark');
+        
+        // Add fade in animation to table rows with staggered delay
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            row.classList.add('animate__animated', 'animate__fadeInUp');
+            row.style.animationDelay = `${index * 100}ms`;
+            
+            // Add hover animation to table rows
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = 'var(--grey-tertiary)';
+                this.style.color = 'var(--red-primary)';
+                this.style.transition = 'background-color 0.3s, color 0.3s';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+                this.style.color = '';
+            });
+        });
+    });
+    
+    // Ensure cards have correct grey background with hover effects
+    document.querySelectorAll('.card').forEach((card, index) => {
+        if (!card.classList.contains('bg-grey')) {
+            card.classList.add('bg-grey');
         }
         card.classList.add('text-light');
+        
+        // Add staggered fade-in animation to cards
+        card.classList.add('animate__animated', 'animate__fadeIn');
+        card.style.animationDelay = `${index * 150}ms`;
+        
+        // Add hover effect to cards
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.3)';
+            this.style.borderColor = 'var(--red-primary)';
+            this.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+            this.style.borderColor = '';
+        });
+        
+        // Add animation to card headers
+        const cardHeader = card.querySelector('.card-header');
+        if (cardHeader) {
+            cardHeader.style.borderBottomColor = 'var(--red-primary)';
+            cardHeader.style.borderBottomWidth = '2px';
+        }
+    });
+    
+    // Add fade-in animation to main content
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        mainContent.classList.add('fade-in');
+    }
+    
+    // Add slide-in animation to sidebar items
+    const sidebarItems = document.querySelectorAll('#sidebar .list-group-item');
+    sidebarItems.forEach((item, index) => {
+        item.classList.add('slide-in-left');
+        item.style.animationDelay = `${index * 50}ms`;
+        
+        // Add pulse effect to active sidebar item
+        if (item.classList.contains('active')) {
+            item.classList.add('animate__animated', 'animate__pulse', 'animate__infinite');
+            item.style.animationDuration = '2s';
+        }
+    });
+    
+    // Add hover animations to icons
+    document.querySelectorAll('.fa, .fas, .far, .fab').forEach(icon => {
+        icon.addEventListener('mouseenter', function() {
+            this.classList.add('animate__animated', 'animate__rubberBand');
+            this.style.color = 'var(--red-primary)';
+        });
+        
+        icon.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__animated', 'animate__rubberBand');
+            this.style.color = '';
+        });
+    });
+    
+    // Add animation to form inputs
+    document.querySelectorAll('input, select, textarea').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.transition = 'all 0.3s ease';
+            this.style.borderColor = 'var(--red-primary)';
+            this.style.boxShadow = '0 0 0 0.25rem rgba(215, 6, 84, 0.25)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.transform = 'scale(1)';
+            this.style.borderColor = '';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Animate page headings
+    document.querySelectorAll('h1, h2, h3').forEach((heading, index) => {
+        heading.classList.add('animate__animated', 'animate__fadeInDown');
+        heading.style.animationDelay = `${index * 100}ms`;
     });
 }
 
-// Apply dark theme when document is ready
-document.addEventListener('DOMContentLoaded', applyDarkTheme);
+// Apply grey theme when document is ready
+document.addEventListener('DOMContentLoaded', applyGreyTheme);

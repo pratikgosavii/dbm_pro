@@ -19,7 +19,7 @@
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-dark text-light">
+<body class="bg-grey text-light">
     <div class="loading-overlay">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
@@ -33,19 +33,19 @@
         
         <div class="main-content {% if user.is_authenticated %}with-sidebar{% endif %}">
             {% if user.is_authenticated %}
-                <nav class="navbar navbar-expand-lg bg-dark navbar-dark border-bottom border-purple">
+                <nav class="navbar navbar-expand-lg bg-grey navbar-dark border-bottom border-red">
                     <div class="container-fluid">
-                        <button class="btn btn-link text-purple" id="menu-toggle">
+                        <button class="btn btn-link text-red" id="menu-toggle">
                             <i class="fas fa-bars"></i>
                         </button>
                         
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-purple" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="nav-link dropdown-toggle text-red" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-user-circle me-1"></i>
                                     {{ user.get_full_name|default:user.username }}
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end bg-dark border-purple animate__animated animate__fadeIn" aria-labelledby="navbarDropdown">
+                                <ul class="dropdown-menu dropdown-menu-end bg-grey border-red animate__animated animate__fadeIn" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item text-light" href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i>Profile</a></li>
                                     <li><hr class="dropdown-divider border-secondary"></li>
                                     <li>

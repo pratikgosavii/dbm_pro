@@ -1,77 +1,85 @@
 /* 
 * Custom styling for Lead Management System
-* Dark Purple & Black Theme
+* Grey & Red Theme
 */
 
 :root {
-    --purple-primary: #805ad5;
-    --purple-secondary: #6b46c1;
-    --purple-dark: #553c9a;
-    --dark-bg: #121212;
-    --dark-secondary: #1e1e1e;
-    --dark-tertiary: #2d2d2d;
+    --red-primary: #D70654;
+    --red-secondary: #C00548;
+    --red-dark: #A8043E;
+    --grey-bg: #2A2A2A;
+    --grey-secondary: #3A3A3A;
+    --grey-tertiary: #4A4A4A;
     --text-light: #f8f9fa;
     --text-muted: #adb5bd;
 }
 
 /* General Styles */
 body {
-    background-color: var(--dark-bg);
+    background-color: var(--grey-bg);
     color: var(--text-light);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     position: relative;
 }
 
-.btn-purple {
-    background-color: var(--purple-primary);
+.btn-purple, .btn-red {
+    background-color: var(--red-primary);
     color: white;
     border: none;
     transition: all 0.3s;
 }
 
-.btn-purple:hover {
-    background-color: var(--purple-secondary);
+.btn-purple:hover, .btn-red:hover {
+    background-color: var(--red-secondary);
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.btn-outline-purple {
-    border: 1px solid var(--purple-primary);
-    color: var(--purple-primary);
+.btn-outline-purple, .btn-outline-red {
+    border: 1px solid var(--red-primary);
+    color: var(--red-primary);
     background-color: transparent;
     transition: all 0.3s;
 }
 
-.btn-outline-purple:hover {
-    background-color: var(--purple-primary);
+.btn-outline-purple:hover, .btn-outline-red:hover {
+    background-color: var(--red-primary);
     color: white;
     transform: translateY(-2px);
 }
 
-.bg-purple {
-    background-color: var(--purple-primary) !important;
+.bg-purple, .bg-red {
+    background-color: var(--red-primary) !important;
 }
 
-.text-purple {
-    color: var(--purple-primary) !important;
+.text-purple, .text-red {
+    color: var(--red-primary) !important;
 }
 
-.border-purple {
-    border-color: var(--purple-primary) !important;
+.border-purple, .border-red {
+    border-color: var(--red-primary) !important;
+}
+
+.bg-grey {
+    background-color: var(--grey-bg) !important;
+}
+
+.border-grey {
+    border-color: var(--grey-tertiary) !important;
 }
 
 .form-control, .form-select {
-    background-color: var(--dark-tertiary);
-    border: 1px solid var(--purple-dark);
+    background-color: var(--grey-tertiary);
+    border: 1px solid var(--red-dark);
     color: var(--text-light);
 }
 
 .form-control:focus, .form-select:focus {
-    background-color: var(--dark-tertiary);
-    border-color: var(--purple-primary);
-    box-shadow: 0 0 0 0.25rem rgba(128, 90, 213, 0.25);
+    background-color: var(--grey-tertiary);
+    border-color: var(--red-primary);
+    box-shadow: 0 0 0 0.25rem rgba(215, 6, 84, 0.25);
     color: var(--text-light);
 }
 
@@ -158,7 +166,7 @@ body {
     left: 0;
     width: 3px;
     height: 100%;
-    background-color: var(--purple-primary);
+    background-color: var(--red-primary);
     transform: scaleY(0);
     transition: transform 0.3s;
     z-index: -1;
@@ -170,13 +178,13 @@ body {
 }
 
 #sidebar .list-group-item:hover {
-    background-color: var(--dark-tertiary);
-    color: var(--purple-primary);
+    background-color: var(--grey-tertiary);
+    color: var(--red-primary);
 }
 
 #sidebar .list-group-item.active {
-    background-color: var(--dark-tertiary);
-    color: var(--purple-primary);
+    background-color: var(--grey-tertiary);
+    color: var(--red-primary);
     border-color: transparent;
 }
 
@@ -184,8 +192,8 @@ body {
     position: absolute;
     bottom: 0;
     width: 100%;
-    background-color: var(--dark-secondary);
-    border-top: 1px solid var(--purple-dark);
+    background-color: var(--grey-secondary);
+    border-top: 1px solid var(--red-dark);
 }
 
 /* Cards Styling */
@@ -201,7 +209,7 @@ body {
 }
 
 .card-header {
-    border-bottom: 1px solid var(--purple-dark);
+    border-bottom: 1px solid var(--red-dark);
 }
 
 /* Profile Image Styling */
@@ -210,7 +218,7 @@ body {
     height: 100px;
     object-fit: cover;
     border-radius: 50%;
-    border: 3px solid var(--purple-primary);
+    border: 3px solid var(--red-primary);
 }
 
 .profile-image-lg {
@@ -218,7 +226,7 @@ body {
     height: 150px;
     object-fit: cover;
     border-radius: 50%;
-    border: 4px solid var(--purple-primary);
+    border: 4px solid var(--red-primary);
 }
 
 .profile-image-placeholder {
@@ -236,7 +244,7 @@ body {
 }
 
 .table-dark {
-    --bs-table-bg: var(--dark-bg);
+    --bs-table-bg: var(--grey-bg);
 }
 
 .table-dark tbody tr {
@@ -244,17 +252,17 @@ body {
 }
 
 .table-dark tbody tr:hover {
-    --bs-table-accent-bg: var(--dark-tertiary);
+    --bs-table-accent-bg: var(--grey-tertiary);
 }
 
 .table-dark thead tr {
-    background-color: var(--dark-secondary);
+    background-color: var(--grey-secondary);
 }
 
 /* Dropdown Styling */
 .dropdown-menu {
-    background-color: var(--dark-secondary);
-    border: 1px solid var(--purple-primary);
+    background-color: var(--grey-secondary);
+    border: 1px solid var(--red-primary);
     min-width: 200px;
 }
 
@@ -264,12 +272,12 @@ body {
 }
 
 .dropdown-item:hover {
-    background-color: var(--dark-tertiary);
-    color: var(--purple-primary) !important;
+    background-color: var(--grey-tertiary);
+    color: var(--red-primary) !important;
 }
 
 .dropdown-divider {
-    border-top: 1px solid var(--dark-tertiary);
+    border-top: 1px solid var(--grey-tertiary);
 }
 
 /* Animation Classes */
@@ -365,14 +373,14 @@ body {
 /* Progress bar styling */
 .progress {
     height: 6px;
-    background-color: var(--dark-secondary);
+    background-color: var(--grey-secondary);
     border-radius: 3px;
     overflow: hidden;
     margin-top: 4px;
 }
 
 .progress-bar {
-    background-color: var(--purple-primary);
+    background-color: var(--red-primary);
 }
 
 /* Custom Badge styling */
@@ -391,45 +399,45 @@ body {
 
 /* Pagination */
 .page-item .page-link {
-    background-color: var(--dark-secondary);
-    border-color: var(--dark-tertiary);
+    background-color: var(--grey-secondary);
+    border-color: var(--grey-tertiary);
     color: var(--text-light);
 }
 
 .page-item.active .page-link {
-    background-color: var(--purple-primary);
-    border-color: var(--purple-primary);
+    background-color: var(--red-primary);
+    border-color: var(--red-primary);
 }
 
 .page-item .page-link:hover {
-    background-color: var(--dark-tertiary);
-    color: var(--purple-primary);
+    background-color: var(--grey-tertiary);
+    color: var(--red-primary);
 }
 
 /* Custom checkboxes */
 .form-check-input {
-    background-color: var(--dark-tertiary);
-    border-color: var(--purple-dark);
+    background-color: var(--grey-tertiary);
+    border-color: var(--red-dark);
 }
 
 .form-check-input:checked {
-    background-color: var(--purple-primary);
-    border-color: var(--purple-primary);
+    background-color: var(--red-primary);
+    border-color: var(--red-primary);
 }
 
 /* Toast notifications */
 .toast {
-    background-color: var(--dark-secondary);
-    border-color: var(--purple-dark);
+    background-color: var(--grey-secondary);
+    border-color: var(--red-dark);
 }
 
 .toast-header {
-    background-color: var(--dark-tertiary);
+    background-color: var(--grey-tertiary);
     color: var(--text-light);
 }
 
 /* Enhance focus */
 :focus {
     outline: none !important;
-    box-shadow: 0 0 0 0.25rem rgba(128, 90, 213, 0.25) !important;
+    box-shadow: 0 0 0 0.25rem rgba(215, 6, 84, 0.25) !important;
 }
