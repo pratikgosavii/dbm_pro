@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Leads | Lead Management System{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-file-import me-2 text-purple"></i>Import Leads from Excel</h2>
+        <a href="{% url 'leads:lead_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Leads
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card bg-dark border-purple shadow mb-4 animate__animated animate__fadeIn">
+                <div class="card-header bg-purple text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Excel File</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="animate__animated animate__fadeIn">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="id_excel_file" class="form-label text-light">Excel File*</label>
+                            {{ form.excel_file }}
+                            <div class="form-text text-muted">{{ form.excel_file.help_text }}</div>
+                        </div>
+                        
+                        <div class="mb-3 d-grid">
+                            <button type="submit" class="btn btn-purple">
+                                <i class="fas fa-file-import me-2"></i>Import Leads
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Excel Format Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-light">The Excel file should have the following columns:</p>
+                    
+                    <ul class="list-group bg-dark mb-3">
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Name</strong> (Required)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Email</strong> (Optional)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Phone</strong> (Optional)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Company</strong> (Optional)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Source</strong> (Optional)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Status</strong> (Optional)
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-purple">
+                            <i class="fas fa-check text-success me-2"></i><strong>Notes</strong> (Optional)
+                        </li>
+                    </ul>
+                    
+                    <div class="alert alert-info bg-dark text-info border-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> If source or status values don't exist, they will be created automatically.
+                    </div>
+                    
+                    <div class="alert alert-warning bg-dark text-warning border-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> The first row should contain the column headers exactly as listed above.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

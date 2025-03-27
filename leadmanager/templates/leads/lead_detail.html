@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lead.name }} | Lead Detail{% endblock %}
+
+{% block page_title %}Lead: {{ lead.name }}{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex">
+    <a href="{% url 'leads:lead_list' %}" class="btn btn-outline-secondary me-2">
+        <i class="fas fa-arrow-left me-1"></i> Back to Leads
+    </a>
+    
+    {% if can_update %}
+    <a href="{% url 'leads:lead_update' lead.id %}" class="btn btn-warning">
+        <i class="fas fa-edit me-1"></i> Edit Lead
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <!-- Lead Details -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-tag me-2"></i> Lead Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Full Name</p>
+                        <h5>{{ lead.name }}</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Email</p>
+                        <h5>
+                            <a href="mailto:{{ lead.email }}" class="text-primary">
+                                {{ lead.email }}
+                            </a>
+                        </h5>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Phone</p>
+                        <h5>
+                            {% if lead.phone %}
+                            <a href="tel:{{ lead.phone }}" class="text-primary">
+                                {{ lead.phone }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Company</p>
+                        <h5>{{ lead.company|default:"Not provided" }}</h5>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Job Title</p>
+                        <h5>{{ lead.job_title|default:"Not provided" }}</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">Source</p>
+                        <h5>
+                            {% if lead.source %}
+                            <span class="badge bg-info">{{ lead.source.name }}</span>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="text-muted mb-1">Notes</p>
+                        <div class="p-3 bg-dark rounded">
+                            {{ lead.notes|default:"No notes provided"|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status & Metadata -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> Status</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-1">Current Status</p>
+                <h4>
+                    {% if lead.status %}
+                    <span class="badge lead-status-{{ lead.status.name|lower }} p-2">
+                        {{ lead.status.name }}
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary p-2">No Status</span>
+                    {% endif %}
+                </h4>
+                
+                <hr>
+                
+                <p class="text-muted mb-1">Assigned To</p>
+                <h5>
+                    {% if lead.assigned_to %}
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-circle fa-lg me-2"></i>
+                        {{ lead.assigned_to.first_name }} {{ lead.assigned_to.last_name }}
+                    </div>
+                    {% else %}
+                    <span class="text-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Unassigned
+                    </span>
+                    {% endif %}
+                </h5>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Created By</p>
+                        <p>{{ lead.created_by.first_name }} {{ lead.created_by.last_name }}</p>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Created On</p>
+                        <p>{{ lead.created_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <p class="text-muted mb-1">Last Updated</p>
+                        <p>{{ lead.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if can_update %}
+                    <a href="{% url 'leads:lead_update' lead.id %}" class="btn btn-warning btn-block">
+                        <i class="fas fa-edit me-2"></i> Edit Lead
+                    </a>
+                    {% endif %}
+                    
+                    {% if lead.email %}
+                    <a href="mailto:{{ lead.email }}" class="btn btn-outline-primary btn-block">
+                        <i class="fas fa-envelope me-2"></i> Send Email
+                    </a>
+                    {% endif %}
+                    
+                    {% if lead.phone %}
+                    <a href="tel:{{ lead.phone }}" class="btn btn-outline-success btn-block">
+                        <i class="fas fa-phone me-2"></i> Call Lead
+                    </a>
+                    {% endif %}
+                    
+                    {% if not lead.assigned_to and user_role == 'manager' or user_role == 'admin' %}
+                    <a href="{% url 'leads:lead_assign' %}" class="btn btn-outline-info btn-block">
+                        <i class="fas fa-user-check me-2"></i> Assign Lead
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to elements
+        const animatedElements = document.querySelectorAll('.card');
+        animatedElements.forEach((element, index) => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            element.style.transitionDelay = `${index * 0.1}s`;
+            
+            setTimeout(() => {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}

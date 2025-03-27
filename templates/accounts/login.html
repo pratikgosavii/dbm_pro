@@ -1,128 +1,60 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - Lead Management System{% endblock %}
-
-{% block extra_css %}
-<style>
-    .login-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .login-card {
-        max-width: 400px;
-        width: 100%;
-        padding: 15px;
-        margin: auto;
-    }
-    .login-logo {
-        font-size: 2rem;
-        color: #6f42c1;
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-    .login-form {
-        margin-bottom: 1rem;
-    }
-    .form-control {
-        height: 46px;
-    }
-    .btn-login {
-        height: 46px;
-    }
-    .login-footer {
-        text-align: center;
-        margin-top: 1.5rem;
-    }
-</style>
-{% endblock %}
+{% block title %}Login | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="login-container animate__animated animate__fadeIn">
-    <div class="login-card card card-dark">
-        <div class="login-logo">
-            <i class="fas fa-project-diagram me-2"></i>
-            <span>Lead Manager</span>
-        </div>
-        
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-lg-5 col-md-7">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInDown">
+                <div class="card-header bg-purple text-white text-center py-3">
+                    <h3 class="mb-0"><i class="fas fa-lock me-2"></i>Sign In</h3>
                 </div>
-            {% endfor %}
-        {% endif %}
-        
-        <div class="card-body">
-            <h4 class="card-title text-center mb-4">Sign In</h4>
-            
-            <form method="post" class="login-form animate__animated animate__fadeInUp animate__delay-1s">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.username.errors }}
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.password.errors }}
-                        </div>
-                    {% endif %}
-                </div>
-                
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-chart-line text-purple fa-3x mb-3"></i>
+                        <h4 class="text-light">Lead Management System</h4>
+                        <p class="text-muted">Enter your credentials to access your account</p>
                     </div>
-                {% endif %}
-                
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-accent btn-login animate__animated animate__pulse animate__infinite">Sign In</button>
+                    
+                    <form method="post" action="{% url 'accounts:login' %}" class="animate__animated animate__fadeIn">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Invalid username or password
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-purple text-purple">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                {{ form.username }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-purple text-purple">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                {{ form.password }}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-block btn-purple w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </form>
                 </div>
-            </form>
-            
-            <div class="login-footer animate__animated animate__fadeInUp animate__delay-2s">
-                <p class="mb-0">Don't have an account? <a href="{% url 'accounts:register' %}" class="text-accent">Sign Up</a></p>
+                <div class="card-footer bg-dark border-0 text-center text-muted py-3">
+                    <small>&copy; 2023 Lead Management System</small>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add animation when focusing on form fields
-    const formFields = document.querySelectorAll('.form-control');
-    formFields.forEach(field => {
-        field.addEventListener('focus', function() {
-            this.classList.add('animate__animated', 'animate__pulse');
-        });
-        field.addEventListener('blur', function() {
-            this.classList.remove('animate__animated', 'animate__pulse');
-        });
-    });
-    
-    // Stop infinite pulse animation on button after a few seconds
-    setTimeout(function() {
-        const loginBtn = document.querySelector('.btn-login');
-        if (loginBtn) {
-            loginBtn.classList.remove('animate__infinite');
-        }
-    }, 3000);
-});
-</script>
 {% endblock %}

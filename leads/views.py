@@ -2,271 +2,241 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
-from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Lead, LeadActivity
-from .forms import LeadForm, LeadImportForm, LeadFilterForm
+from django.contrib.auth.models import User
+from .models import Lead, LeadSource, LeadStatus
+from .forms import LeadForm, LeadAssignForm, ExcelImportForm
 from .facebook_api import import_facebook_leads
-from .excel_utils import import_leads_from_excel, export_leads_to_excel
-from accounts.models import UserProfile
+from .excel_utils import export_leads_to_excel, import_leads_from_excel
+import datetime
 
 @login_required
-def leads_list(request):
-    """Display list of leads with filtering options"""
-    user = request.user
-    user_profile = UserProfile.objects.get(user=user)
+def lead_list(request):
+    # Determine which leads to show based on user role
+    user_profile = request.user.userprofile
     
-    # Initialize filter form
-    filter_form = LeadFilterForm(request.GET)
-    
-    # Base queryset - filtered by role
-    if user_profile.is_sales_rep():
-        # Sales reps only see their assigned leads
-        leads = Lead.objects.filter(assigned_to=user)
-    else:
-        # Managers, admins, and operations managers see all leads
+    if user_profile.is_admin or user_profile.is_manager:
         leads = Lead.objects.all()
+    elif user_profile.is_sales_rep:
+        leads = Lead.objects.filter(assigned_to=request.user)
+    else:
+        leads = Lead.objects.none()
     
-    # Apply filters if form is valid
-    if filter_form.is_valid():
-        # Filter by status if provided
-        status = filter_form.cleaned_data.get('status')
-        if status:
-            leads = leads.filter(status=status)
-        
-        # Filter by source if provided
-        source = filter_form.cleaned_data.get('source')
-        if source:
-            leads = leads.filter(source=source)
-            
-        # Filter by assigned user if provided
-        assigned_to = filter_form.cleaned_data.get('assigned_to')
-        if assigned_to:
-            leads = leads.filter(assigned_to=assigned_to)
-            
-        # Search by name, email, or company if provided
-        search_query = filter_form.cleaned_data.get('search')
-        if search_query:
-            leads = leads.filter(
-                Q(first_name__icontains=search_query) | 
-                Q(last_name__icontains=search_query) | 
-                Q(email__icontains=search_query) | 
-                Q(company__icontains=search_query)
-            )
+    # Filter by search query
+    query = request.GET.get('q')
+    if query:
+        leads = leads.filter(
+            Q(name__icontains=query) | 
+            Q(email__icontains=query) | 
+            Q(phone__icontains=query) | 
+            Q(company__icontains=query)
+        )
     
-    # Pagination
-    paginator = Paginator(leads, 10)  # Show 10 leads per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Filter by status
+    status_id = request.GET.get('status')
+    if status_id:
+        leads = leads.filter(status_id=status_id)
+    
+    # Filter by source
+    source_id = request.GET.get('source')
+    if source_id:
+        leads = leads.filter(source_id=source_id)
+    
+    # Get filter options
+    statuses = LeadStatus.objects.filter(is_active=True)
+    sources = LeadSource.objects.filter(is_active=True)
     
     context = {
-        'leads': page_obj,
-        'filter_form': filter_form,
-        'user_profile': user_profile,
+        'leads': leads,
+        'statuses': statuses,
+        'sources': sources,
+        'current_status': status_id,
+        'current_source': source_id,
+        'query': query,
     }
     
-    return render(request, 'leads/leads_list.html', context)
+    return render(request, 'leads/lead_list.html', context)
+
+@login_required
+def lead_detail(request, pk):
+    lead = get_object_or_404(Lead, pk=pk)
+    
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager or 
+            (user_profile.is_sales_rep and lead.assigned_to == request.user)):
+        messages.error(request, "You don't have permission to view this lead.")
+        return redirect('leads:lead_list')
+    
+    if request.method == 'POST':
+        form = LeadForm(request.POST, instance=lead)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Lead updated successfully.')
+            return redirect('leads:lead_detail', pk=lead.pk)
+    else:
+        form = LeadForm(instance=lead)
+    
+    context = {
+        'lead': lead,
+        'form': form,
+    }
+    
+    return render(request, 'leads/lead_detail.html', context)
 
 @login_required
 def lead_create(request):
-    """Create a new lead"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check if user has permission to create leads
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager or user_profile.is_sales_rep):
         messages.error(request, "You don't have permission to create leads.")
-        return redirect('leads:list')
+        return redirect('leads:lead_list')
     
     if request.method == 'POST':
         form = LeadForm(request.POST)
         if form.is_valid():
             lead = form.save(commit=False)
-            lead.source = Lead.MANUAL
+            lead.created_by = request.user
             lead.save()
-            
-            # Create activity log
-            LeadActivity.objects.create(
-                lead=lead,
-                user=request.user,
-                activity_type='Created',
-                description='Lead was created manually'
-            )
-            
-            messages.success(request, f"Lead {lead.full_name} created successfully!")
-            return redirect('leads:list')
+            messages.success(request, 'Lead created successfully.')
+            return redirect('leads:lead_detail', pk=lead.pk)
     else:
         form = LeadForm()
     
     context = {
         'form': form,
-        'title': 'Create Lead',
-        'user_profile': user_profile,
+        'is_create': True,
     }
     
     return render(request, 'leads/lead_form.html', context)
 
 @login_required
 def lead_update(request, pk):
-    """Update an existing lead"""
     lead = get_object_or_404(Lead, pk=pk)
-    user_profile = UserProfile.objects.get(user=request.user)
     
-    # Check if user has permission to update this lead
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager() or 
-            (user_profile.is_sales_rep() and lead.assigned_to == request.user)):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager or 
+            (user_profile.is_sales_rep and lead.assigned_to == request.user)):
         messages.error(request, "You don't have permission to update this lead.")
-        return redirect('leads:list')
+        return redirect('leads:lead_list')
     
     if request.method == 'POST':
         form = LeadForm(request.POST, instance=lead)
         if form.is_valid():
-            old_status = lead.status
-            updated_lead = form.save()
-            
-            # Create activity log for status change
-            if old_status != updated_lead.status:
-                LeadActivity.objects.create(
-                    lead=updated_lead,
-                    user=request.user,
-                    activity_type='Status Changed',
-                    description=f'Status updated from {old_status} to {updated_lead.status}'
-                )
-            
-            messages.success(request, f"Lead {updated_lead.full_name} updated successfully!")
-            return redirect('leads:list')
+            form.save()
+            messages.success(request, 'Lead updated successfully.')
+            return redirect('leads:lead_detail', pk=lead.pk)
     else:
         form = LeadForm(instance=lead)
     
     context = {
         'form': form,
         'lead': lead,
-        'title': 'Update Lead',
-        'user_profile': user_profile,
+        'is_create': False,
     }
     
     return render(request, 'leads/lead_form.html', context)
 
 @login_required
-def lead_delete(request, pk):
-    """Delete a lead"""
+def lead_assign(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
-    user_profile = UserProfile.objects.get(user=request.user)
     
-    # Check if user has permission to delete leads
-    if not (user_profile.is_admin() or user_profile.is_manager()):
-        messages.error(request, "You don't have permission to delete leads.")
-        return redirect('leads:list')
-    
-    if request.method == 'POST':
-        lead_name = lead.full_name
-        lead.delete()
-        messages.success(request, f"Lead {lead_name} deleted successfully!")
-        return redirect('leads:list')
-    
-    context = {
-        'lead': lead,
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'leads/lead_confirm_delete.html', context)
-
-@login_required
-def import_leads(request):
-    """Import leads from Excel or Facebook Ads"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check if user has permission to import leads
-    if not (user_profile.is_admin() or user_profile.is_manager()):
-        messages.error(request, "You don't have permission to import leads.")
-        return redirect('leads:list')
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager):
+        messages.error(request, "You don't have permission to assign leads.")
+        return redirect('leads:lead_list')
     
     if request.method == 'POST':
-        form = LeadImportForm(request.POST, request.FILES)
+        form = LeadAssignForm(request.POST, instance=lead)
         if form.is_valid():
-            import_type = form.cleaned_data.get('import_type')
-            
-            if import_type == 'excel' and request.FILES.get('excel_file'):
-                try:
-                    excel_file = request.FILES['excel_file']
-                    imported_count = import_leads_from_excel(excel_file, request.user)
-                    messages.success(request, f"Successfully imported {imported_count} leads from Excel.")
-                    return redirect('leads:list')
-                except Exception as e:
-                    messages.error(request, f"Error importing leads from Excel: {str(e)}")
-            
-            elif import_type == 'facebook':
-                try:
-                    imported_count = import_facebook_leads(request.user)
-                    messages.success(request, f"Successfully imported {imported_count} leads from Facebook Ads.")
-                    return redirect('leads:list')
-                except Exception as e:
-                    messages.error(request, f"Error importing leads from Facebook: {str(e)}")
+            form.save()
+            messages.success(request, 'Lead assigned successfully.')
+            return redirect('leads:lead_detail', pk=lead.pk)
     else:
-        form = LeadImportForm()
+        form = LeadAssignForm(instance=lead)
     
     context = {
         'form': form,
-        'user_profile': user_profile,
+        'lead': lead,
     }
     
-    return render(request, 'leads/import_leads.html', context)
+    return render(request, 'leads/lead_form.html', context)
 
 @login_required
-def export_leads(request):
-    """Export leads to Excel"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check if user has permission to export leads
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
+def lead_export(request):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager):
         messages.error(request, "You don't have permission to export leads.")
-        return redirect('leads:list')
+        return redirect('leads:lead_list')
     
-    # Get filtered queryset (use same filtering logic as in leads_list view)
-    filter_form = LeadFilterForm(request.GET)
+    # Get leads based on filters
+    leads = Lead.objects.all()
     
-    # Base queryset - filtered by role
-    if user_profile.is_sales_rep():
-        # Sales reps only see their assigned leads
-        leads = Lead.objects.filter(assigned_to=request.user)
-    else:
-        # Managers, admins, and operations managers see all leads
-        leads = Lead.objects.all()
+    # Filter by status
+    status_id = request.GET.get('status')
+    if status_id:
+        leads = leads.filter(status_id=status_id)
     
-    # Apply filters if form is valid
-    if filter_form.is_valid():
-        # Filter by status if provided
-        status = filter_form.cleaned_data.get('status')
-        if status:
-            leads = leads.filter(status=status)
-        
-        # Filter by source if provided
-        source = filter_form.cleaned_data.get('source')
-        if source:
-            leads = leads.filter(source=source)
-            
-        # Filter by assigned user if provided
-        assigned_to = filter_form.cleaned_data.get('assigned_to')
-        if assigned_to:
-            leads = leads.filter(assigned_to=assigned_to)
-            
-        # Search by name, email, or company if provided
-        search_query = filter_form.cleaned_data.get('search')
-        if search_query:
-            leads = leads.filter(
-                Q(first_name__icontains=search_query) | 
-                Q(last_name__icontains=search_query) | 
-                Q(email__icontains=search_query) | 
-                Q(company__icontains=search_query)
-            )
+    # Filter by source
+    source_id = request.GET.get('source')
+    if source_id:
+        leads = leads.filter(source_id=source_id)
     
-    # Create Excel file
-    excel_file = export_leads_to_excel(leads)
-    
-    # Create HTTP response with Excel file
+    # Generate Excel file
     response = HttpResponse(
-        excel_file,
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
-    response['Content-Disposition'] = 'attachment; filename=leads_export.xlsx'
+    filename = f'leads_export_{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    
+    export_leads_to_excel(leads, response)
     
     return response
+
+@login_required
+def lead_import(request):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager):
+        messages.error(request, "You don't have permission to import leads.")
+        return redirect('leads:lead_list')
+    
+    if request.method == 'POST':
+        form = ExcelImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['excel_file']
+            try:
+                imported_count = import_leads_from_excel(excel_file, request.user)
+                messages.success(request, f'{imported_count} leads imported successfully.')
+                return redirect('leads:lead_list')
+            except Exception as e:
+                messages.error(request, f'Error importing leads: {str(e)}')
+    else:
+        form = ExcelImportForm()
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'leads/lead_import.html', context)
+
+@login_required
+def facebook_leads_import(request):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_manager):
+        messages.error(request, "You don't have permission to import Facebook leads.")
+        return redirect('leads:lead_list')
+    
+    if request.method == 'POST':
+        try:
+            imported_count = import_facebook_leads(request.user)
+            messages.success(request, f'{imported_count} leads imported from Facebook.')
+        except Exception as e:
+            messages.error(request, f'Error importing Facebook leads: {str(e)}')
+        return redirect('leads:lead_list')
+    
+    return render(request, 'leads/lead_facebook_import.html')

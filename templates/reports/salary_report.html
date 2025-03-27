@@ -1,211 +1,248 @@
 {% extends 'base.html' %}
 
-{% block title %}Salary Report - Lead Management System{% endblock %}
+{% block title %}Salary Report | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="report-container animate__animated animate__fadeIn">
-    <!-- Report Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="page-title">
-                <i class="fas fa-chart-pie me-2"></i>Salary Report
-            </h1>
-            <p class="text-muted">Monthly salary expense analysis and breakdown</p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <div class="btn-group animate__animated animate__fadeInRight">
-                <button onclick="window.print()" class="btn btn-secondary">
-                    <i class="fas fa-print me-2"></i>Print Report
-                </button>
-                <a href="{% url 'employees:salary_list' %}" class="btn btn-primary">
-                    <i class="fas fa-dollar-sign me-2"></i>Salary Management
-                </a>
-                <a href="{% url 'employees:employees_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-users me-2"></i>Employees
-                </a>
-            </div>
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-chart-pie me-2 text-purple"></i>Salary Report</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-chart-bar me-2"></i>Sales Report
+            </a>
+            <a href="{% url 'reports:payment_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-chart-line me-2"></i>Payment Report
+            </a>
         </div>
     </div>
-
-    <!-- Report Filter Card -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+    
+    <!-- Filters -->
+    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
-        <div class="card-body">
-            <form method="get" action="{% url 'employees:salary_report' %}">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label class="form-label">Month</label>
-                            <select name="month" class="form-control">
-                                <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
-                                <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
-                                <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
-                                <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
-                                <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
-                                <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
-                                <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
-                                <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
-                                <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
-                                <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
-                                <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
-                                <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
-                            </select>
-                        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" action="{% url 'reports:salary_report' %}" class="row g-3">
+                    <div class="col-md-5">
+                        <select name="month" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Months</option>
+                            {% for m in month_choices %}
+                                <option value="{{ m.0 }}" {% if current_month == m.0 %}selected{% endif %}>
+                                    {{ m.1 }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label class="form-label">Year</label>
-                            <select name="year" class="form-control">
-                                {% for y in "2020"|make_list|add:"2021"|make_list|add:"2022"|make_list|add:"2023"|make_list|add:"2024"|make_list %}
-                                <option value="{{ y }}" {% if year == y|add:0 %}selected{% endif %}>{{ y }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="col-md-5">
+                        <select name="year" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Years</option>
+                            {% for y in year_choices %}
+                                <option value="{{ y }}" {% if current_year == y %}selected{% endif %}>
+                                    {{ y }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>Generate Report
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-purple w-100">
+                            <i class="fas fa-filter me-2"></i>Generate Report
                         </button>
                     </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Report Summary Card -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="fas fa-chart-line me-2"></i>Salary Summary - {{ month|get_month_name }} {{ year }}
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 text-center">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Total Employees</h6>
-                        <h2>{{ salary_data|length }}</h2>
-                    </div>
-                </div>
-                <div class="col-md-4 text-center border-start border-end">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Total Monthly Salary</h6>
-                        <h2 class="text-accent">${{ total_salary|floatformat:2 }}</h2>
-                    </div>
-                </div>
-                <div class="col-md-4 text-center">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Average Salary</h6>
-                        <h2 class="text-info">
-                            {% if salary_data|length > 0 %}
-                                ${{ total_salary|divide:salary_data|length|floatformat:2 }}
-                            {% else %}
-                                $0.00
-                            {% endif %}
-                        </h2>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <canvas id="salaryDistributionChart" height="250"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <canvas id="salaryByRoleChart" height="250"></canvas>
-                </div>
+                </form>
             </div>
         </div>
     </div>
-
-    <!-- Detailed Salary Table -->
-    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-3s">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Detailed Salary Breakdown
-                </h5>
-                <div class="report-badge">{{ month|get_month_name }} {{ year }}</div>
+    
+    <!-- Report Summary -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Total Employees</h6>
+                            <h2 class="text-light mb-0">{{ total_salaries }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-purple p-3">
+                            <i class="fas fa-users fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Period: 
+                        {% if current_month %}
+                            {{ month_choices|dictkey:current_month }} 
+                        {% else %}
+                            All Months
+                        {% endif %}
+                        {{ current_year|default:"All Years" }}
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Total Salary</h6>
+                            <h2 class="text-light mb-0">${{ total_salary|floatformat:2 }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-success p-3">
+                            <i class="fas fa-dollar-sign fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Base salary (excl. bonus/deduction)
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Total Bonus</h6>
+                            <h2 class="text-light mb-0">
+                                ${{ total_bonus|floatformat:2 }}
+                            </h2>
+                        </div>
+                        <div class="rounded-circle bg-info p-3">
+                            <i class="fas fa-plus-circle fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Bonuses for the period
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Net Payout</h6>
+                            <h2 class="text-light mb-0">
+                                ${{ net_payout|floatformat:2 }}
+                            </h2>
+                        </div>
+                        <div class="rounded-circle bg-warning p-3">
+                            <i class="fas fa-calculator fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Total salary + bonus - deductions
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Salary Components</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="componentsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Salary by Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusPieChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Salary Detail Table -->
+    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">Salary Details</h5>
+            <span class="badge bg-dark">{{ salaries.count }} records</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover m-0">
-                    <thead>
+                <table class="table table-dark table-striped table-hover mb-0">
+                    <thead class="text-purple border-purple">
                         <tr>
-                            <th>Employee</th>
-                            <th>Role</th>
-                            <th>Salary</th>
-                            <th>Effective Since</th>
-                            <th>Employee Status</th>
+                            <th scope="col">Employee</th>
+                            <th scope="col">Month, Year</th>
+                            <th scope="col">Base Salary</th>
+                            <th scope="col">Bonus</th>
+                            <th scope="col">Deduction</th>
+                            <th scope="col">Net Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Payment Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% if salary_data %}
-                            {% for item in salary_data %}
-                                <tr class="salary-row animate__animated animate__fadeIn">
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="employee-avatar me-2">
-                                                {% if item.employee.profile.profile_picture %}
-                                                    <img src="{{ item.employee.profile.profile_picture }}" alt="{{ item.employee.username }}">
-                                                {% else %}
-                                                    <i class="fas fa-user-circle"></i>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                <strong>{{ item.employee.first_name }} {{ item.employee.last_name }}</strong>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% with role=item.employee.profile.role %}
-                                            {% if role == 'admin' %}
-                                                <span class="badge bg-danger">Admin</span>
-                                            {% elif role == 'manager' %}
-                                                <span class="badge bg-warning">Manager</span>
-                                            {% elif role == 'operations_manager' %}
-                                                <span class="badge bg-success">Operations Manager</span>
-                                            {% elif role == 'sales_rep' %}
-                                                <span class="badge bg-info">Sales Rep</span>
-                                            {% elif role == 'developer' %}
-                                                <span class="badge bg-primary">Developer</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td class="text-accent">${{ item.salary.amount|floatformat:2 }}</td>
-                                    <td>{{ item.salary.effective_date|date:"M d, Y" }}</td>
-                                    <td><span class="badge bg-success">Active</span></td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    <div class="empty-state">
-                                        <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
-                                        <h5>No salary data available</h5>
-                                        <p class="text-muted">No salary records found for the selected period</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endif %}
+                        {% for salary in salaries %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'employees:employee_detail' salary.employee.id %}" class="text-light text-decoration-none">
+                                    {{ salary.employee.get_full_name|default:salary.employee.username }}
+                                </a>
+                            </td>
+                            <td>{{ salary.get_month_display }}, {{ salary.year }}</td>
+                            <td>${{ salary.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if salary.bonus > 0 %}
+                                    <span class="text-success">+${{ salary.bonus|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if salary.deduction > 0 %}
+                                    <span class="text-danger">-${{ salary.deduction|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">${{ salary.net_amount|floatformat:2 }}</td>
+                            <td>
+                                {% if salary.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif salary.status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif salary.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if salary.payment_date %}
+                                    {{ salary.payment_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">Not paid</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-3">
+                                No salary records found for the selected period
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
-            </div>
-        </div>
-        <div class="card-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="report-summary">
-                    <span class="me-3"><strong>Total Employees:</strong> {{ salary_data|length }}</span>
-                    <span><strong>Total Monthly Salary:</strong> ${{ total_salary|floatformat:2 }}</span>
-                </div>
-                <div class="report-actions">
-                    <button onclick="window.print()" class="btn btn-sm btn-outline-light">
-                        <i class="fas fa-print me-1"></i>Print
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -214,123 +251,92 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add hover animation for salary rows
-    const salaryRows = document.querySelectorAll('.salary-row');
-    salaryRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.classList.add('animate__pulse');
-        });
-        row.addEventListener('mouseleave', function() {
-            this.classList.remove('animate__pulse');
-        });
-    });
-    
-    // Set chart defaults
-    Chart.defaults.color = '#adb5bd';
-    Chart.defaults.borderColor = '#444';
-    
-    // Salary Distribution Chart
-    if(document.getElementById('salaryDistributionChart')) {
-        // Placeholder data - in a real app, this would be populated from the backend
-        const salaryRanges = ['0-1000', '1001-2000', '2001-3000', '3001-4000', '4001+'];
-        const salaryDistribution = [2, 5, 8, 3, 2];
-        
-        const ctx = document.getElementById('salaryDistributionChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
+    document.addEventListener('DOMContentLoaded', function() {
+        // Components Pie Chart
+        const componentsCtx = document.getElementById('componentsChart').getContext('2d');
+        const componentsChart = new Chart(componentsCtx, {
+            type: 'pie',
             data: {
-                labels: salaryRanges,
+                labels: ['Base Salary', 'Bonus', 'Deduction'],
                 datasets: [{
-                    label: 'Number of Employees',
-                    data: salaryDistribution,
-                    backgroundColor: 'rgba(111, 66, 193, 0.7)', // Purple
-                    borderColor: 'rgba(111, 66, 193, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Salary Distribution',
-                        color: '#e2e2e2'
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2'
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Salary by Role Chart
-    if(document.getElementById('salaryByRoleChart')) {
-        // Placeholder data - in a real app, this would be populated from the backend
-        const roles = ['Admin', 'Manager', 'Operations', 'Developer', 'Sales Rep'];
-        const avgSalaryByRole = [3500, 3000, 2800, 2500, 2200];
-        
-        const ctx = document.getElementById('salaryByRoleChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: roles,
-                datasets: [{
-                    data: avgSalaryByRole,
-                    backgroundColor: [
-                        '#dc3545', // Admin - Red
-                        '#ffc107', // Manager - Yellow
-                        '#28a745', // Operations - Green
-                        '#0d6efd', // Developer - Blue
-                        '#17a2b8'  // Sales Rep - Cyan
+                    data: [
+                        {{ total_salary|default:0 }},
+                        {{ total_bonus|default:0 }},
+                        {{ total_deduction|default:0 }}
                     ],
-                    borderWidth: 1,
-                    borderColor: '#343a40'
+                    backgroundColor: [
+                        'rgba(128, 90, 213, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Average Salary by Role',
-                        color: '#e2e2e2'
-                    },
                     legend: {
                         position: 'right',
                         labels: {
-                            color: '#e2e2e2',
-                            font: {
-                                size: 12
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
                     }
                 }
             }
         });
-    }
-});
+        
+        // Status Pie Chart
+        const statusPieCtx = document.getElementById('statusPieChart').getContext('2d');
+        const statusPieChart = new Chart(statusPieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for item in salaries_by_status %}"{{ item.status|default:'Undefined' }}",{% endfor %}],
+                datasets: [{
+                    data: [{% for item in salaries_by_status %}{{ item.total }},{% endfor %}],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)', // paid
+                        'rgba(255, 159, 64, 0.8)', // pending
+                        'rgba(255, 99, 132, 0.8)', // cancelled
+                    ],
+                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
 </script>
 {% endblock %}

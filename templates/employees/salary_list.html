@@ -1,203 +1,162 @@
 {% extends 'base.html' %}
 
-{% block title %}Salary Management - Lead Management System{% endblock %}
+{% block title %}Salaries | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="salary-container animate__animated animate__fadeIn">
-    <!-- Salary Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="page-title">
-                <i class="fas fa-dollar-sign me-2"></i>Salary Management
-            </h1>
-            <p class="text-muted">Manage employee salaries and compensation</p>
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-dollar-sign me-2 text-purple"></i>Salaries</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'employees:salary_create' %}" class="btn btn-purple animate__animated animate__fadeIn">
+                <i class="fas fa-plus me-2"></i>Add Salary
+            </a>
+            <a href="{% url 'employees:employee_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-users me-2"></i>Employees
+            </a>
+            <a href="{% url 'reports:salary_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-chart-bar me-2"></i>Salary Report
+            </a>
         </div>
-        <div class="col-md-6 text-md-end">
-            <div class="btn-group animate__animated animate__fadeInRight">
-                <a href="{% url 'employees:salary_create' %}" class="btn btn-accent">
-                    <i class="fas fa-plus me-2"></i>Add Salary Record
-                </a>
-                <a href="{% url 'employees:salary_report' %}" class="btn btn-primary">
-                    <i class="fas fa-chart-bar me-2"></i>Salary Reports
-                </a>
-                <a href="{% url 'employees:employees_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-users me-2"></i>Employees
-                </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Filters</h5>
+            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" action="{% url 'employees:salary_list' %}" class="row g-3">
+                    <div class="col-md-3">
+                        <select name="employee" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Employees</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.id }}" {% if current_employee|stringformat:"s" == emp.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ emp.get_full_name|default:emp.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="month" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Months</option>
+                            {% for month_value, month_name in month_choices %}
+                                <option value="{{ month_value }}" {% if current_month|stringformat:"s" == month_value|stringformat:"s" %}selected{% endif %}>
+                                    {{ month_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="year" class="form-control bg-dark text-light border-purple" placeholder="Year" value="{{ current_year|default:'' }}" min="2000" max="2100">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Statuses</option>
+                            {% for status_value, status_name in status_choices %}
+                                <option value="{{ status_value }}" {% if current_status == status_value %}selected{% endif %}>
+                                    {{ status_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-purple w-100">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-
-    <!-- Salary Overview Card -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Employee Salary Overview</h5>
+    
+    <!-- Salaries Table -->
+    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">Salary Records</h5>
+            <span class="badge bg-dark">{{ salaries.count }} records</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover m-0">
-                    <thead>
+                <table class="table table-dark table-striped table-hover mb-0">
+                    <thead class="text-purple border-purple">
                         <tr>
-                            <th>Employee</th>
-                            <th>Role</th>
-                            <th>Current Salary</th>
-                            <th>Last Updated</th>
-                            <th>Actions</th>
+                            <th scope="col">Employee</th>
+                            <th scope="col">Month/Year</th>
+                            <th scope="col">Base Salary</th>
+                            <th scope="col">Bonus</th>
+                            <th scope="col">Deduction</th>
+                            <th scope="col">Net Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Payment Date</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% if employee_salaries %}
-                            {% for item in employee_salaries %}
-                                <tr class="salary-row animate__animated animate__fadeIn">
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="employee-avatar me-2">
-                                                {% if item.employee.profile.profile_picture %}
-                                                    <img src="{{ item.employee.profile.profile_picture }}" alt="{{ item.employee.username }}">
-                                                {% else %}
-                                                    <i class="fas fa-user-circle"></i>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                <strong>{{ item.employee.first_name }} {{ item.employee.last_name }}</strong>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% with role=item.employee.profile.role %}
-                                            {% if role == 'admin' %}
-                                                <span class="badge bg-danger">Admin</span>
-                                            {% elif role == 'manager' %}
-                                                <span class="badge bg-warning">Manager</span>
-                                            {% elif role == 'operations_manager' %}
-                                                <span class="badge bg-success">Operations Manager</span>
-                                            {% elif role == 'sales_rep' %}
-                                                <span class="badge bg-info">Sales Rep</span>
-                                            {% elif role == 'developer' %}
-                                                <span class="badge bg-primary">Developer</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td class="text-accent">
-                                        {% if item.current_salary %}
-                                            ${{ item.current_salary.amount|floatformat:2 }}
-                                        {% else %}
-                                            <span class="text-muted">Not set</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if item.current_salary %}
-                                            {{ item.current_salary.effective_date|date:"M d, Y" }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <a href="{% url 'employees:salary_create' %}?employee={{ item.employee.id }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-plus-circle"></i>
-                                            </a>
-                                            {% if item.current_salary %}
-                                            <a href="{% url 'employees:salary_history' item.employee.id %}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-history"></i>
-                                            </a>
-                                            {% endif %}
-                                            <a href="{% url 'employees:employee_detail' item.employee.id %}" class="btn btn-sm btn-secondary">
-                                                <i class="fas fa-user"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    <div class="empty-state">
-                                        <i class="fas fa-dollar-sign fa-3x mb-3"></i>
-                                        <h5>No salary records found</h5>
-                                        <p class="text-muted">No employees with salary information yet</p>
-                                        <a href="{% url 'employees:salary_create' %}" class="btn btn-accent mt-3">
-                                            <i class="fas fa-plus me-2"></i>Add Salary Record
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endif %}
+                        {% for salary in salaries %}
+                        <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|divisibleby:10 }}0ms">
+                            <td>
+                                <a href="{% url 'employees:employee_detail' salary.employee.id %}" class="text-light text-decoration-none">
+                                    {{ salary.employee.get_full_name|default:salary.employee.username }}
+                                </a>
+                            </td>
+                            <td>{{ salary.get_month_display }}, {{ salary.year }}</td>
+                            <td>${{ salary.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if salary.bonus > 0 %}
+                                    <span class="text-success">+${{ salary.bonus|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if salary.deduction > 0 %}
+                                    <span class="text-danger">-${{ salary.deduction|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">${{ salary.net_amount|floatformat:2 }}</td>
+                            <td>
+                                {% if salary.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif salary.status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% elif salary.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if salary.payment_date %}
+                                    {{ salary.payment_date|date:"M d, Y" }}
+                                {% else %}
+                                    <span class="text-muted">Not paid</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'employees:salary_update' salary.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="fas fa-dollar-sign fa-2x mb-3"></i>
+                                <p>No salary records found. Try adjusting your filters or create a new salary record.</p>
+                                <a href="{% url 'employees:salary_create' %}" class="btn btn-sm btn-purple">
+                                    <i class="fas fa-plus me-2"></i>Add Salary
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    
-    <!-- Salary Management Tips -->
-    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Salary Management Guidelines</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <div class="info-content">
-                            <h5>Salary History</h5>
-                            <p>Each employee's salary history is maintained. You can view previous salary changes and effective dates.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="info-content">
-                            <h5>Monthly Reports</h5>
-                            <p>Generate monthly salary reports for payroll processing and budget planning.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-card">
-                        <div class="info-icon">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <div class="info-content">
-                            <h5>Access Control</h5>
-                            <p>Only Admin and Operations Manager roles can view and modify salary information.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add hover animation for salary rows
-    const salaryRows = document.querySelectorAll('.salary-row');
-    salaryRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.classList.add('animate__pulse');
-        });
-        row.addEventListener('mouseleave', function() {
-            this.classList.remove('animate__pulse');
-        });
-    });
-    
-    // Add hover animation for info cards
-    const infoCards = document.querySelectorAll('.info-card');
-    infoCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.classList.add('animate__pulse');
-        });
-        card.addEventListener('mouseleave', function() {
-            this.classList.remove('animate__pulse');
-        });
-    });
-});
-</script>
 {% endblock %}

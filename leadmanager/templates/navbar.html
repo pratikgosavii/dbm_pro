@@ -1,0 +1,96 @@
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+        <!-- Mobile menu toggle button -->
+        <button id="toggle-sidebar" class="btn btn-link d-lg-none me-2" type="button">
+            <i class="fas fa-bars text-white"></i>
+        </button>
+        
+        <!-- Brand logo -->
+        <a class="navbar-brand" href="{% url 'dashboard:index' %}">
+            <i class="fas fa-project-diagram me-2"></i>Lead Manager
+        </a>
+        
+        <!-- Navbar toggler for mobile -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navbar content -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- Search Form -->
+            <form class="d-flex ms-auto me-3">
+                <div class="input-group">
+                    <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Notification dropdown -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge rounded-pill bg-danger">3</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                        <h6 class="dropdown-header">Notifications</h6>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user-plus me-2 text-success"></i>
+                            <div>
+                                <small class="text-muted">Just now</small>
+                                <p class="mb-0">New lead assigned to you</p>
+                            </div>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-tasks me-2 text-primary"></i>
+                            <div>
+                                <small class="text-muted">30 minutes ago</small>
+                                <p class="mb-0">New task assigned</p>
+                            </div>
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-money-bill-wave me-2 text-warning"></i>
+                            <div>
+                                <small class="text-muted">2 hours ago</small>
+                                <p class="mb-0">Payment received</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-center" href="#">View all notifications</a>
+                    </div>
+                </li>
+                
+                <!-- User dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ user.first_name|default:user.username }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <h6 class="dropdown-header">
+                            <span class="d-block">{{ user.get_full_name|default:user.username }}</span>
+                            <small class="text-muted">{{ user_role|title }}</small>
+                        </h6>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user me-2"></i> My Profile
+                        </a>
+                        {% if user.profile.role == 'developer' %}
+                        <a class="dropdown-item" href="{% url 'employees:timesheet' %}">
+                            <i class="fas fa-clock me-2"></i> My Timesheet
+                        </a>
+                        {% endif %}
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item logout-btn" href="{% url 'accounts:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

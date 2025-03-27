@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Leads | Lead Management System{% endblock %}
+
+{% block page_title %}Leads Management{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex">
+    {% if can_import %}
+    <a href="{% url 'leads:lead_import' %}" class="btn btn-outline-primary me-2">
+        <i class="fas fa-file-import me-1"></i> Import Leads
+    </a>
+    {% endif %}
+    
+    {% if can_export %}
+    <a href="{% url 'leads:lead_export' %}" class="btn btn-outline-success me-2">
+        <i class="fas fa-file-export me-1"></i> Export Leads
+    </a>
+    {% endif %}
+    
+    {% if can_create %}
+    <a href="{% url 'leads:lead_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Lead
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <!-- Filters -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row">
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Search leads..." value="{{ request.GET.q|default:'' }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <select name="status" class="form-control">
+                            <option value="">All Statuses</option>
+                            {% for status in statuses %}
+                            <option value="{{ status.id }}" {% if request.GET.status == status.id|stringformat:"s" %}selected{% endif %}>
+                                {{ status.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <select name="source" class="form-control">
+                            <option value="">All Sources</option>
+                            {% for source in sources %}
+                            <option value="{{ source.id }}" {% if request.GET.source == source.id|stringformat:"s" %}selected{% endif %}>
+                                {{ source.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leads Table -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-tag me-2"></i> Leads
+                    {% if request.GET.q %}<small class="text-muted ms-2">Search results for: "{{ request.GET.q }}"</small>{% endif %}
+                </h5>
+                
+                {% if can_assign and user_role != 'sales_rep' %}
+                <a href="{% url 'leads:lead_assign' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-user-check me-1"></i> Assign Leads
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Source</th>
+                                <th>Assigned To</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lead in leads %}
+                            <tr class="animate-on-scroll" data-animation="fade-in" style="--delay: {{ forloop.counter0|add:1|divisibleby:10 }}">
+                                <td>{{ lead.name }}</td>
+                                <td>{{ lead.email }}</td>
+                                <td>{{ lead.phone|default:"-" }}</td>
+                                <td>{{ lead.company|default:"-" }}</td>
+                                <td>
+                                    {% if lead.status %}
+                                    <span class="badge lead-status-{{ lead.status.name|lower }}">
+                                        {{ lead.status.name }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No Status</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ lead.source.name|default:"-" }}</td>
+                                <td>
+                                    {% if lead.assigned_to %}
+                                    {{ lead.assigned_to.first_name }} {{ lead.assigned_to.last_name }}
+                                    {% else %}
+                                    <span class="text-warning">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{% url 'leads:lead_detail' lead.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if can_update %}
+                                        <a href="{% url 'leads:lead_update' lead.id %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                    <p>No leads found</p>
+                                    {% if can_create %}
+                                    <a href="{% url 'leads:lead_create' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> Add Lead
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Auto-submit form when select changes
+        const filterSelects = document.querySelectorAll('select[name="status"], select[name="source"]');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+        
+        // Animate table rows on scroll
+        const animatedRows = document.querySelectorAll('.animate-on-scroll');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const row = entry.target;
+                    const delay = parseFloat(row.style.getPropertyValue('--delay')) || 0;
+                    setTimeout(() => {
+                        row.classList.add('fade-in');
+                    }, delay * 50);
+                    observer.unobserve(row);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        
+        animatedRows.forEach(row => {
+            observer.observe(row);
+        });
+    });
+</script>
+{% endblock %}

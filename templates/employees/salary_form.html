@@ -1,207 +1,116 @@
 {% extends 'base.html' %}
 
-{% block title %}{% if form.instance.id %}Update{% else %}Add{% endif %} Salary Record - Lead Management System{% endblock %}
+{% block title %}
+    {% if is_create %}Create Salary{% else %}Update Salary{% endif %} | Lead Management System
+{% endblock %}
 
 {% block content %}
-<div class="salary-form-container animate__animated animate__fadeIn">
-    <!-- Salary Form Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="page-title">
-                <i class="fas fa-dollar-sign me-2"></i>{% if form.instance.id %}Update{% else %}Add{% endif %} Salary Record
-            </h1>
-            <p class="text-muted">
-                {% if form.instance.id %}
-                    Update salary information for an employee
-                {% else %}
-                    Create a new salary record for an employee
-                {% endif %}
-            </p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <a href="{% url 'employees:salary_list' %}" class="btn btn-outline-secondary animate__animated animate__fadeInRight">
-                <i class="fas fa-arrow-left me-2"></i>Back to Salary List
-            </a>
-        </div>
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-dollar-sign me-2 text-purple"></i>
+            {% if is_create %}Create New Salary Record{% else %}Update Salary Record{% endif %}
+        </h2>
+        <a href="{% url 'employees:salary_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Salaries
+        </a>
     </div>
-
-    <!-- Salary Form Card -->
-    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="card-header">
+    
+    <div class="card bg-dark border-purple shadow animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white py-3">
             <h5 class="mb-0">
-                {% if form.instance.id %}
-                    <i class="fas fa-edit me-2"></i>Edit Salary Record
+                {% if is_create %}
+                    <i class="fas fa-plus-circle me-2"></i>New Salary Information
                 {% else %}
-                    <i class="fas fa-plus me-2"></i>New Salary Record
+                    <i class="fas fa-edit me-2"></i>Update Salary for {{ salary.employee.get_full_name|default:salary.employee.username }}
                 {% endif %}
             </h5>
         </div>
         <div class="card-body">
-            <form method="post">
+            <form method="post" class="animate__animated animate__fadeIn">
                 {% csrf_token %}
                 
-                <div class="row">
-                    <!-- Employee Information -->
+                <div class="row g-3">
                     <div class="col-md-6">
-                        <h6 class="form-section-title">Employee Information</h6>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.employee.id_for_label }}" class="form-label">Employee<span class="required-asterisk">*</span></label>
-                            {{ form.employee }}
-                            {% if form.employee.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.employee.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
+                        <label for="id_employee" class="form-label text-light">Employee*</label>
+                        {{ form.employee }}
+                        {% if form.employee.errors %}
+                            <div class="invalid-feedback d-block">{{ form.employee.errors.0 }}</div>
+                        {% endif %}
                     </div>
-                    
-                    <!-- Salary Details -->
+                    <div class="col-md-3">
+                        <label for="id_month" class="form-label text-light">Month*</label>
+                        {{ form.month }}
+                        {% if form.month.errors %}
+                            <div class="invalid-feedback d-block">{{ form.month.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_year" class="form-label text-light">Year*</label>
+                        {{ form.year }}
+                        {% if form.year.errors %}
+                            <div class="invalid-feedback d-block">{{ form.year.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_amount" class="form-label text-light">Base Salary*</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.amount.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_bonus" class="form-label text-light">Bonus</label>
+                        {{ form.bonus }}
+                        {% if form.bonus.errors %}
+                            <div class="invalid-feedback d-block">{{ form.bonus.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_deduction" class="form-label text-light">Deduction</label>
+                        {{ form.deduction }}
+                        {% if form.deduction.errors %}
+                            <div class="invalid-feedback d-block">{{ form.deduction.errors.0 }}</div>
+                        {% endif %}
+                    </div>
                     <div class="col-md-6">
-                        <h6 class="form-section-title">Salary Details</h6>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.amount.id_for_label }}" class="form-label">Salary Amount<span class="required-asterisk">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.amount }}
-                            </div>
-                            {% if form.amount.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.amount.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.effective_date.id_for_label }}" class="form-label">Effective Date<span class="required-asterisk">*</span></label>
-                            {{ form.effective_date }}
-                            {% if form.effective_date.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.effective_date.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
+                        <label for="id_status" class="form-label text-light">Status*</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_payment_date" class="form-label text-light">Payment Date</label>
+                        {{ form.payment_date }}
+                        <div class="form-text text-muted">Leave empty if not paid yet</div>
+                        {% if form.payment_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.payment_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="id_notes" class="form-label text-light">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
                 
-                <!-- Notes -->
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
-                            {{ form.notes }}
-                            {% if form.notes.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ form.notes.errors }}
-                                </div>
-                            {% endif %}
-                            <div class="form-text mt-1">
-                                Add any notes about this salary change, such as reason for increase/decrease, performance review details, etc.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                
-                <!-- Submit Buttons -->
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{% url 'employees:salary_list' %}" class="btn btn-secondary">
+                <div class="mt-4 text-end">
+                    <a href="{% url 'employees:salary_list' %}" class="btn btn-outline-light me-2">
                         <i class="fas fa-times me-2"></i>Cancel
                     </a>
-                    <button type="submit" class="btn btn-accent animate__animated animate__pulse">
-                        <i class="fas fa-save me-2"></i>
-                        {% if form.instance.id %}
-                            Update Salary Record
+                    <button type="submit" class="btn btn-purple">
+                        {% if is_create %}
+                            <i class="fas fa-plus-circle me-2"></i>Create Salary Record
                         {% else %}
-                            Save Salary Record
+                            <i class="fas fa-save me-2"></i>Save Changes
                         {% endif %}
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    
-    {% if form.initial.employee %}
-    <!-- Current Salary Information -->
-    <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Employee Salary History</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover m-0">
-                    <thead>
-                        <tr>
-                            <th>Effective Date</th>
-                            <th>Amount</th>
-                            <th>Added On</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salary-history">
-                        <tr>
-                            <td colspan="4" class="text-center py-4">
-                                <div class="d-flex justify-content-center">
-                                    <div class="spinner-border text-light" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                                <p class="text-muted mt-2">Loading salary history...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add animation when focusing on form fields
-    const formFields = document.querySelectorAll('.form-control');
-    formFields.forEach(field => {
-        field.addEventListener('focus', function() {
-            this.classList.add('animate__animated', 'animate__pulse');
-        });
-        field.addEventListener('blur', function() {
-            this.classList.remove('animate__animated', 'animate__pulse');
-        });
-    });
-    
-    // If employee is pre-selected, fetch their salary history
-    const employeeField = document.getElementById('{{ form.employee.id_for_label }}');
-    if (employeeField && employeeField.value) {
-        const historyTable = document.getElementById('salary-history');
-        if (historyTable) {
-            // This would typically make an AJAX call to fetch history
-            // For now, we'll just show a placeholder message instead of loading spinner
-            setTimeout(() => {
-                historyTable.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-history fa-3x mb-3"></i>
-                                <h5>Salary history will appear here</h5>
-                                <p class="text-muted">Once you save this record, it will be added to the employee's history</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }, 1000);
-        }
-    }
-});
-</script>
 {% endblock %}

@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lead.name }} | Lead Management System{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-user-tag me-2 text-purple"></i>Lead Details</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'leads:lead_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-arrow-left me-2"></i>Back to Leads
+            </a>
+            <a href="{% url 'leads:lead_update' lead.id %}" class="btn btn-warning animate__animated animate__fadeIn">
+                <i class="fas fa-edit me-2"></i>Edit Lead
+            </a>
+            {% if user.userprofile.is_admin or user.userprofile.is_manager %}
+            <a href="{% url 'leads:lead_assign' lead.id %}" class="btn btn-success animate__animated animate__fadeIn">
+                <i class="fas fa-user-check me-2"></i>Assign Lead
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Lead Info Card -->
+        <div class="col-lg-8">
+            <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+                <div class="card-header bg-purple text-white py-3">
+                    <h5 class="mb-0">{{ lead.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush bg-dark">
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                    {{ lead.email|default:"Not provided" }}
+                                </li>
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-phone me-2"></i>Phone:</strong>
+                                    {{ lead.phone|default:"Not provided" }}
+                                </li>
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-building me-2"></i>Company:</strong>
+                                    {{ lead.company|default:"Not provided" }}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group list-group-flush bg-dark">
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-tag me-2"></i>Source:</strong>
+                                    {% if lead.source %}
+                                    <span class="badge bg-info">{{ lead.source.name }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                    {% endif %}
+                                </li>
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-chart-pie me-2"></i>Status:</strong>
+                                    {% if lead.status %}
+                                    <span class="badge bg-primary">{{ lead.status.name }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Undefined</span>
+                                    {% endif %}
+                                </li>
+                                <li class="list-group-item bg-dark text-light border-0 ps-0">
+                                    <strong class="text-purple"><i class="fas fa-user-check me-2"></i>Assigned To:</strong>
+                                    {% if lead.assigned_to %}
+                                    <span class="badge bg-success">{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Unassigned</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if lead.notes %}
+                    <div class="mb-0">
+                        <h6 class="text-purple mb-2"><i class="fas fa-sticky-note me-2"></i>Notes:</h6>
+                        <div class="card bg-black border-purple">
+                            <div class="card-body text-light">
+                                {{ lead.notes|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-dark border-purple text-muted">
+                    <div class="row small">
+                        <div class="col-md-6">
+                            <i class="fas fa-calendar-alt me-1"></i> Created: {{ lead.created_at|date:"M d, Y h:i A" }}
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <i class="fas fa-sync-alt me-1"></i> Updated: {{ lead.updated_at|date:"M d, Y h:i A" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Update Lead Card -->
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 text-purple"><i class="fas fa-edit me-2"></i>Update Lead</h5>
+                    <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#updateCollapse" aria-expanded="false" aria-controls="updateCollapse">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="collapse" id="updateCollapse">
+                    <div class="card-body">
+                        <form method="post" action="{% url 'leads:lead_update' lead.id %}" class="animate__animated animate__fadeIn">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_name" class="form-label text-light">Name</label>
+                                    {{ form.name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_email" class="form-label text-light">Email</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_phone" class="form-label text-light">Phone</label>
+                                    {{ form.phone }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_company" class="form-label text-light">Company</label>
+                                    {{ form.company }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_source" class="form-label text-light">Source</label>
+                                    {{ form.source }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_status" class="form-label text-light">Status</label>
+                                    {{ form.status }}
+                                </div>
+                                <div class="col-12">
+                                    <label for="id_notes" class="form-label text-light">Notes</label>
+                                    {{ form.notes }}
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="submit" class="btn btn-purple">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lead Metadata Card -->
+        <div class="col-lg-4">
+            <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple py-3">
+                    <h5 class="mb-0 text-purple"><i class="fas fa-info-circle me-2"></i>Lead Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush bg-dark">
+                        <li class="list-group-item bg-dark text-light border-0 px-0">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-calendar-plus me-2 text-purple"></i>Created Date:</span>
+                                <span>{{ lead.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-0 px-0">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-calendar-check me-2 text-purple"></i>Last Updated:</span>
+                                <span>{{ lead.updated_at|date:"M d, Y" }}</span>
+                            </div>
+                        </li>
+                        <li class="list-group-item bg-dark text-light border-0 px-0">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-user me-2 text-purple"></i>Created By:</span>
+                                <span>
+                                    {% if lead.created_by %}
+                                    {{ lead.created_by.get_full_name|default:lead.created_by.username }}
+                                    {% else %}
+                                    System
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </li>
+                        {% if lead.facebook_lead_id %}
+                        <li class="list-group-item bg-dark text-light border-0 px-0">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fab fa-facebook me-2 text-purple"></i>Facebook Lead ID:</span>
+                                <span>{{ lead.facebook_lead_id }}</span>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            {% if user.userprofile.is_admin or user.userprofile.is_manager %}
+            <!-- Assign Lead Card -->
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple py-3">
+                    <h5 class="mb-0 text-purple"><i class="fas fa-user-check me-2"></i>Assign Lead</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'leads:lead_assign' lead.id %}" class="animate__animated animate__fadeIn">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_assigned_to" class="form-label text-light">Assign To Sales Representative</label>
+                            <select name="assigned_to" id="id_assigned_to" class="form-select bg-dark text-light border-purple">
+                                <option value="">-- Unassigned --</option>
+                                {% for user in user_list %}
+                                <option value="{{ user.id }}" {% if lead.assigned_to and lead.assigned_to.id == user.id %}selected{% endif %}>
+                                    {{ user.get_full_name|default:user.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-user-check me-2"></i>Assign Lead
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

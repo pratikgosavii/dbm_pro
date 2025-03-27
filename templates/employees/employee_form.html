@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if is_create %}Create Employee{% else %}Update Employee{% endif %} | Lead Management System
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-user me-2 text-purple"></i>
+            {% if is_create %}Create New Employee{% else %}Update Employee{% endif %}
+        </h2>
+        <a href="{% url 'employees:employee_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Employees
+        </a>
+    </div>
+    
+    <div class="card bg-dark border-purple shadow animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white py-3">
+            <h5 class="mb-0">
+                {% if is_create %}
+                    <i class="fas fa-plus-circle me-2"></i>New Employee Information
+                {% else %}
+                    <i class="fas fa-edit me-2"></i>Update "{{ employee.get_full_name|default:employee.username }}"
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="animate__animated animate__fadeIn">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="id_username" class="form-label text-light">Username*</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_email" class="form-label text-light">Email*</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_first_name" class="form-label text-light">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_last_name" class="form-label text-light">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% if is_create %}
+                    <div class="col-md-6">
+                        <label for="id_password1" class="form-label text-light">Password*</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_password2" class="form-label text-light">Confirm Password*</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <label for="id_role" class="form-label text-light">Role*</label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="invalid-feedback d-block">{{ form.role.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_phone" class="form-label text-light">Phone</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback d-block">{{ form.phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="id_address" class="form-label text-light">Address</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <div class="invalid-feedback d-block">{{ form.address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="id_profile_picture" class="form-label text-light">Profile Picture URL</label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="invalid-feedback d-block">{{ form.profile_picture.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% if not is_create %}
+                    <div class="col-md-12">
+                        <div class="form-check form-switch">
+                            {{ form.is_active }}
+                            <label class="form-check-label text-light" for="id_is_active">Active Account</label>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4 text-end">
+                    <a href="{% url 'employees:employee_list' %}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-purple">
+                        {% if is_create %}
+                            <i class="fas fa-plus-circle me-2"></i>Create Employee
+                        {% else %}
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

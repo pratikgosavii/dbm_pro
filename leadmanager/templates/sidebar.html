@@ -1,0 +1,170 @@
+<nav class="sidebar">
+    <div class="sidebar-content">
+        <!-- User Info -->
+        <div class="user-info p-3 d-flex align-items-center mb-3">
+            <div class="user-avatar me-3">
+                <i class="fas fa-user-circle fa-2x"></i>
+            </div>
+            <div class="user-details">
+                <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                <span class="text-muted small">{{ user_role|title }}</span>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <ul class="sidebar-menu">
+            <!-- Dashboard Link (visible to all) -->
+            <li>
+                <a href="{% url 'dashboard:index' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            
+            <!-- Leads Section (visible to Admin, Manager, Sales Rep) -->
+            {% if user_role in 'admin,manager,sales_rep' %}
+            <li>
+                <a href="{% url 'leads:lead_list' %}" class="{% if '/leads/' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-tag me-2"></i> Leads
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Projects Section (visible to Admin, Operations Manager, Developer) -->
+            {% if user_role in 'admin,operations_manager,developer' %}
+            <li>
+                <a href="{% url 'projects:project_list' %}" class="{% if '/projects/' in request.path and not '/clients/' in request.path %}active{% endif %}">
+                    <i class="fas fa-project-diagram me-2"></i> Projects
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Clients Section (visible to Admin, Operations Manager) -->
+            {% if user_role in 'admin,operations_manager' %}
+            <li>
+                <a href="{% url 'projects:client_list' %}" class="{% if '/clients/' in request.path %}active{% endif %}">
+                    <i class="fas fa-building me-2"></i> Clients
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Payments Section (visible to Admin, Operations Manager) -->
+            {% if user_role in 'admin,operations_manager' %}
+            <li>
+                <a href="{% url 'payments:payment_list' %}" class="{% if '/payments/' in request.path and not '/reports/' in request.path %}active{% endif %}">
+                    <i class="fas fa-money-bill-wave me-2"></i> Payments
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Employees Section (visible to Admin) -->
+            {% if user_role == 'admin' %}
+            <li>
+                <a href="{% url 'employees:employee_list' %}" class="{% if '/employees/' in request.path and not '/timesheet/' in request.path %}active{% endif %}">
+                    <i class="fas fa-users me-2"></i> Employees
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Timesheet Section (visible to all) -->
+            <li>
+                <a href="{% url 'employees:timesheet' %}" class="{% if '/timesheet/' in request.path %}active{% endif %}">
+                    <i class="fas fa-clock me-2"></i> Timesheet
+                </a>
+            </li>
+            
+            <!-- Reports Section (visible to Admin, Manager, Operations Manager) -->
+            {% if user_role in 'admin,manager,operations_manager' %}
+            <li class="sidebar-dropdown">
+                <a href="#" class="{% if '/reports/' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-bar me-2"></i> Reports
+                    <i class="fas fa-chevron-right float-end mt-1"></i>
+                </a>
+                <div class="sidebar-submenu">
+                    <ul>
+                        <li>
+                            <a href="{% url 'payments:payment_report' %}">
+                                <i class="fas fa-circle-dot me-2"></i> Payment Reports
+                            </a>
+                        </li>
+                        {% if user_role in 'admin' %}
+                        <li>
+                            <a href="{% url 'employees:salary_report' %}">
+                                <i class="fas fa-circle-dot me-2"></i> Salary Reports
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </li>
+            {% endif %}
+            
+            <!-- User Management (Admin only) -->
+            {% if user_role == 'admin' %}
+            <li>
+                <a href="{% url 'accounts:register' %}">
+                    <i class="fas fa-user-plus me-2"></i> Add User
+                </a>
+            </li>
+            {% endif %}
+            
+            <!-- Logout Link -->
+            <li>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<script>
+    // Toggle submenu on click
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdowns = document.querySelectorAll('.sidebar-dropdown > a');
+        dropdowns.forEach(dropdown => {
+            dropdown.addEventListener('click', function(e) {
+                e.preventDefault();
+                const submenu = this.nextElementSibling;
+                const isOpen = submenu.style.display === 'block';
+                
+                // Close all other submenus
+                document.querySelectorAll('.sidebar-submenu').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+                
+                // Toggle current submenu
+                submenu.style.display = isOpen ? 'none' : 'block';
+                this.querySelector('.fa-chevron-right').classList.toggle('rotate-90', !isOpen);
+            });
+        });
+        
+        // Auto-open active submenu
+        const activeDropdown = document.querySelector('.sidebar-dropdown > a.active');
+        if (activeDropdown) {
+            const submenu = activeDropdown.nextElementSibling;
+            submenu.style.display = 'block';
+            activeDropdown.querySelector('.fa-chevron-right').classList.add('rotate-90');
+        }
+    });
+</script>
+
+<style>
+    .sidebar-submenu {
+        display: none;
+        padding-left: 20px;
+    }
+    
+    .sidebar-submenu ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .sidebar-submenu a {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .rotate-90 {
+        transform: rotate(90deg);
+    }
+</style>

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if is_create %}Create Payment{% else %}Update Payment{% endif %} | Lead Management System
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-money-bill-wave me-2 text-purple"></i>
+            {% if is_create %}Create New Payment{% else %}Update Payment{% endif %}
+        </h2>
+        <a href="{% url 'payments:payment_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Payments
+        </a>
+    </div>
+    
+    <div class="card bg-dark border-purple shadow animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white py-3">
+            <h5 class="mb-0">
+                {% if is_create %}
+                    <i class="fas fa-plus-circle me-2"></i>New Payment Information
+                {% else %}
+                    <i class="fas fa-edit me-2"></i>Update Payment for "{{ payment.project.name }}"
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="animate__animated animate__fadeIn">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="id_project" class="form-label text-light">Project*</label>
+                        {{ form.project }}
+                        {% if form.project.errors %}
+                            <div class="invalid-feedback d-block">{{ form.project.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_amount" class="form-label text-light">Amount*</label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.amount.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_payment_date" class="form-label text-light">Payment Date*</label>
+                        {{ form.payment_date }}
+                        {% if form.payment_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.payment_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_payment_method" class="form-label text-light">Payment Method</label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                            <div class="invalid-feedback d-block">{{ form.payment_method.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_status" class="form-label text-light">Status*</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">{{ form.status.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="id_reference_number" class="form-label text-light">Reference Number</label>
+                        {{ form.reference_number }}
+                        {% if form.reference_number.errors %}
+                            <div class="invalid-feedback d-block">{{ form.reference_number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12">
+                        <label for="id_notes" class="form-label text-light">Notes</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-end">
+                    <a href="{% url 'payments:payment_list' %}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-purple">
+                        {% if is_create %}
+                            <i class="fas fa-plus-circle me-2"></i>Create Payment
+                        {% else %}
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

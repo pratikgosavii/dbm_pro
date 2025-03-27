@@ -1,449 +1,267 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Q
 from django.contrib.auth.models import User
-from django.core.paginator import Paginator
-from django.http import JsonResponse
-from .models import Task, Attendance, Salary
-from .forms import TaskForm, AttendanceForm, SalaryForm, TaskFilterForm, EmployeeFilterForm
-from accounts.models import UserProfile
+from .models import Attendance, Salary
+from .forms import AttendanceForm, SalaryForm, PunchForm
 
 @login_required
-def employees_list(request):
-    """Display list of employees with filtering options"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
+def employee_list(request):
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
         messages.error(request, "You don't have permission to view employees.")
         return redirect('dashboard:index')
     
-    # Initialize filter form
-    filter_form = EmployeeFilterForm(request.GET)
+    # Get employees with search filter
+    employees = User.objects.all()
+    query = request.GET.get('q')
+    if query:
+        employees = employees.filter(
+            Q(username__icontains=query) | 
+            Q(first_name__icontains=query) | 
+            Q(last_name__icontains=query) | 
+            Q(email__icontains=query)
+        )
     
-    # Base queryset
-    employees = User.objects.filter(profile__isnull=False)
-    
-    # Apply filters if form is valid
-    if filter_form.is_valid():
-        # Filter by role if provided
-        role = filter_form.cleaned_data.get('role')
-        if role:
-            employees = employees.filter(profile__role=role)
-            
-        # Search by name or email if provided
-        search_query = filter_form.cleaned_data.get('search')
-        if search_query:
-            employees = employees.filter(
-                Q(first_name__icontains=search_query) | 
-                Q(last_name__icontains=search_query) | 
-                Q(email__icontains=search_query) |
-                Q(username__icontains=search_query)
-            )
-    
-    # Pagination
-    paginator = Paginator(employees, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Filter by role
+    role = request.GET.get('role')
+    if role:
+        employees = employees.filter(userprofile__role=role)
     
     context = {
-        'employees': page_obj,
-        'filter_form': filter_form,
-        'user_profile': user_profile,
+        'employees': employees,
+        'query': query,
+        'current_role': role,
     }
     
-    return render(request, 'employees/employees_list.html', context)
-
-@login_required
-def employee_create(request):
-    """Create a new employee (redirects to register page)"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager()):
-        messages.error(request, "You don't have permission to create employees.")
-        return redirect('employees:employees_list')
-    
-    # Redirect to registration page
-    return redirect('accounts:register')
+    return render(request, 'employees/employee_list.html', context)
 
 @login_required
 def employee_detail(request, pk):
-    """View employee details"""
     employee = get_object_or_404(User, pk=pk)
-    user_profile = UserProfile.objects.get(user=request.user)
     
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to view employee details.")
-        return redirect('employees:employees_list')
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager or request.user.pk == pk):
+        messages.error(request, "You don't have permission to view this employee.")
+        return redirect('employees:employee_list')
     
-    # Get employee's tasks
-    tasks = Task.objects.filter(assigned_to=employee)
+    # Get attendance records
+    attendances = Attendance.objects.filter(employee=employee).order_by('-date')[:30]
     
-    # Get employee's attendance records
-    attendance_records = Attendance.objects.filter(employee=employee).order_by('-date')[:10]
-    
-    # Get employee's current salary
-    current_salary = Salary.objects.filter(employee=employee).order_by('-effective_date').first()
+    # Get salary records
+    salaries = Salary.objects.filter(employee=employee).order_by('-year', '-month')[:12]
     
     context = {
         'employee': employee,
-        'employee_profile': UserProfile.objects.get(user=employee),
-        'tasks': tasks,
-        'attendance_records': attendance_records,
-        'current_salary': current_salary,
-        'user_profile': user_profile,
+        'attendances': attendances,
+        'salaries': salaries,
     }
     
     return render(request, 'employees/employee_detail.html', context)
 
 @login_required
-def tasks_list(request):
-    """Display list of tasks with filtering options"""
-    user_profile = UserProfile.objects.get(user=request.user)
+def attendance_log(request):
+    # Show all attendance for admins/managers, but only own attendance for others
+    user_profile = request.user.userprofile
     
-    # Initialize filter form
-    filter_form = TaskFilterForm(request.GET)
-    
-    # Base queryset - filtered by role
-    if user_profile.is_developer() or user_profile.is_sales_rep():
-        # Regular employees only see their assigned tasks
-        tasks = Task.objects.filter(assigned_to=request.user)
-    else:
-        # Managers, admins, and operations managers see all tasks
-        tasks = Task.objects.all()
-    
-    # Apply filters if form is valid
-    if filter_form.is_valid():
-        # Filter by status if provided
-        status = filter_form.cleaned_data.get('status')
-        if status:
-            tasks = tasks.filter(status=status)
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        attendances = Attendance.objects.all()
         
-        # Filter by priority if provided
-        priority = filter_form.cleaned_data.get('priority')
-        if priority:
-            tasks = tasks.filter(priority=priority)
-            
-        # Filter by assigned user if provided
-        assigned_to = filter_form.cleaned_data.get('assigned_to')
-        if assigned_to:
-            tasks = tasks.filter(assigned_to=assigned_to)
-            
-        # Filter by project if provided
-        project = filter_form.cleaned_data.get('project')
-        if project:
-            tasks = tasks.filter(project=project)
-            
-        # Search by title or description if provided
-        search_query = filter_form.cleaned_data.get('search')
-        if search_query:
-            tasks = tasks.filter(
-                Q(title__icontains=search_query) | 
-                Q(description__icontains=search_query)
-            )
-    
-    # Pagination
-    paginator = Paginator(tasks, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'tasks': page_obj,
-        'filter_form': filter_form,
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'employees/tasks_list.html', context)
-
-@login_required
-def task_create(request):
-    """Create a new task"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to create tasks.")
-        return redirect('employees:tasks_list')
-    
-    if request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            task = form.save(commit=False)
-            task.created_by = request.user
-            task.save()
-            messages.success(request, f"Task '{task.title}' created successfully!")
-            return redirect('employees:tasks_list')
-    else:
-        # Pre-fill assigned_to if provided in URL
+        # Filter by employee
         employee_id = request.GET.get('employee')
-        initial_data = {}
         if employee_id:
-            initial_data['assigned_to'] = employee_id
-        
-        form = TaskForm(initial=initial_data)
-    
-    context = {
-        'form': form,
-        'title': 'Create Task',
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'employees/task_form.html', context)
-
-@login_required
-def task_update(request, pk):
-    """Update an existing task"""
-    task = get_object_or_404(Task, pk=pk)
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager() or 
-            task.assigned_to == request.user):
-        messages.error(request, "You don't have permission to update this task.")
-        return redirect('employees:tasks_list')
-    
-    if request.method == 'POST':
-        # Determine which fields can be updated based on role
-        if user_profile.is_developer() or user_profile.is_sales_rep():
-            # Regular employees can only update status
-            form = TaskForm(request.POST, instance=task, fields=['status'])
-        else:
-            # Managers and admins can update all fields
-            form = TaskForm(request.POST, instance=task)
-        
-        if form.is_valid():
-            form.save()
-            messages.success(request, f"Task '{task.title}' updated successfully!")
-            return redirect('employees:tasks_list')
+            attendances = attendances.filter(employee_id=employee_id)
     else:
-        # Determine which fields can be updated based on role
-        if user_profile.is_developer() or user_profile.is_sales_rep():
-            # Regular employees can only update status
-            form = TaskForm(instance=task, fields=['status'])
-        else:
-            # Managers and admins can update all fields
-            form = TaskForm(instance=task)
+        attendances = Attendance.objects.filter(employee=request.user)
+    
+    # Filter by date range
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        attendances = attendances.filter(date__gte=start_date)
+    
+    if end_date:
+        attendances = attendances.filter(date__lte=end_date)
+    
+    # Order by most recent first
+    attendances = attendances.order_by('-date')
+    
+    # Get all employees for the filter dropdown (for admins/managers)
+    employees = None
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        employees = User.objects.all()
     
     context = {
-        'form': form,
-        'task': task,
-        'title': 'Update Task',
-        'user_profile': user_profile,
+        'attendances': attendances,
+        'employees': employees,
+        'current_employee': employee_id,
+        'start_date': start_date,
+        'end_date': end_date,
     }
     
-    return render(request, 'employees/task_form.html', context)
+    return render(request, 'employees/punch_log.html', context)
 
 @login_required
-def task_delete(request, pk):
-    """Delete a task"""
-    task = get_object_or_404(Task, pk=pk)
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to delete tasks.")
-        return redirect('employees:tasks_list')
-    
-    if request.method == 'POST':
-        task_title = task.title
-        task.delete()
-        messages.success(request, f"Task '{task_title}' deleted successfully!")
-        return redirect('employees:tasks_list')
-    
-    context = {
-        'task': task,
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'employees/task_confirm_delete.html', context)
-
-@login_required
-def attendance(request):
-    """View and manage attendance"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Get today's attendance record for the user
+def punch_in(request):
     today = timezone.now().date()
-    today_attendance = Attendance.objects.filter(employee=request.user, date=today).first()
     
-    # Handle check-in/check-out
-    if request.method == 'POST':
-        action = request.POST.get('action')
+    # Check if already punched in today
+    attendance, created = Attendance.objects.get_or_create(
+        employee=request.user,
+        date=today,
+        defaults={
+            'punch_in_time': timezone.now().time(),
+            'status': 'present'
+        }
+    )
+    
+    if not created:
+        if attendance.punch_in_time:
+            messages.info(request, "You have already punched in today.")
+        else:
+            attendance.punch_in_time = timezone.now().time()
+            attendance.save()
+            messages.success(request, "Punch-in recorded successfully.")
+    else:
+        messages.success(request, "Punch-in recorded successfully.")
+    
+    return redirect('dashboard:index')
+
+@login_required
+def punch_out(request):
+    today = timezone.now().date()
+    
+    try:
+        attendance = Attendance.objects.get(employee=request.user, date=today)
         
-        if action == 'check_in':
-            # Create new attendance record for today
-            if not today_attendance:
-                attendance = Attendance(
-                    employee=request.user,
-                    date=today,
-                    time_in=timezone.now().time()
-                )
-                attendance.save()
-                messages.success(request, "You have successfully checked in.")
-            else:
-                messages.error(request, "You have already checked in today.")
-                
-        elif action == 'check_out':
-            # Update existing attendance record with check-out time
-            if today_attendance and not today_attendance.time_out:
-                today_attendance.time_out = timezone.now().time()
-                today_attendance.save()
-                messages.success(request, "You have successfully checked out.")
-            else:
-                messages.error(request, "You need to check in first or have already checked out.")
+        if not attendance.punch_in_time:
+            messages.error(request, "You need to punch in first.")
+        elif attendance.punch_out_time:
+            messages.info(request, "You have already punched out today.")
+        else:
+            attendance.punch_out_time = timezone.now().time()
+            attendance.save()
+            messages.success(request, "Punch-out recorded successfully.")
+    except Attendance.DoesNotExist:
+        messages.error(request, "You need to punch in first.")
     
-    # Get recent attendance records for the current user
-    attendance_records = Attendance.objects.filter(employee=request.user).order_by('-date')[:10]
-    
-    # For admins/managers, get all attendance records for today
-    all_today_attendance = None
-    if user_profile.is_admin() or user_profile.is_manager() or user_profile.is_operations_manager():
-        all_today_attendance = Attendance.objects.filter(date=today).order_by('employee__username')
-    
-    context = {
-        'today_attendance': today_attendance,
-        'attendance_records': attendance_records,
-        'all_today_attendance': all_today_attendance,
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'employees/attendance.html', context)
+    return redirect('dashboard:index')
 
 @login_required
 def salary_list(request):
-    """List and manage employee salaries"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to view salary information.")
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
+        messages.error(request, "You don't have permission to view salaries.")
         return redirect('dashboard:index')
     
-    # Get employees and their current salaries
-    employees = User.objects.filter(profile__isnull=False)
-    employee_salaries = []
+    salaries = Salary.objects.all()
     
-    for employee in employees:
-        current_salary = Salary.objects.filter(employee=employee).order_by('-effective_date').first()
-        employee_salaries.append({
-            'employee': employee,
-            'current_salary': current_salary
-        })
+    # Filter by employee
+    employee_id = request.GET.get('employee')
+    if employee_id:
+        salaries = salaries.filter(employee_id=employee_id)
+    
+    # Filter by month and year
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    
+    if month:
+        salaries = salaries.filter(month=month)
+    
+    if year:
+        salaries = salaries.filter(year=year)
+    
+    # Filter by status
+    status = request.GET.get('status')
+    if status:
+        salaries = salaries.filter(status=status)
+    
+    # Order by most recent first
+    salaries = salaries.order_by('-year', '-month')
+    
+    # Get all employees for the filter dropdown
+    employees = User.objects.all()
     
     context = {
-        'employee_salaries': employee_salaries,
-        'user_profile': user_profile,
+        'salaries': salaries,
+        'employees': employees,
+        'current_employee': employee_id,
+        'current_month': month,
+        'current_year': year,
+        'current_status': status,
+        'month_choices': Salary.MONTH_CHOICES,
+        'status_choices': Salary.STATUS_CHOICES,
     }
     
     return render(request, 'employees/salary_list.html', context)
 
 @login_required
 def salary_create(request):
-    """Create a new salary record for an employee"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to create salary records.")
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
+        messages.error(request, "You don't have permission to create salaries.")
         return redirect('employees:salary_list')
     
     if request.method == 'POST':
         form = SalaryForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Salary record created successfully!")
-            return redirect('employees:salary_list')
-    else:
-        # Pre-fill employee if provided in URL
-        employee_id = request.GET.get('employee')
-        initial_data = {}
-        if employee_id:
-            initial_data['employee'] = employee_id
+            salary = form.save(commit=False)
+            salary.created_by = request.user
             
-        form = SalaryForm(initial=initial_data)
+            # Check if salary for this month/year already exists
+            existing = Salary.objects.filter(
+                employee=salary.employee,
+                month=salary.month,
+                year=salary.year
+            ).exists()
+            
+            if existing:
+                messages.error(request, f"Salary for {salary.get_month_display()} {salary.year} already exists for this employee.")
+            else:
+                salary.save()
+                messages.success(request, 'Salary created successfully.')
+                return redirect('employees:salary_list')
+    else:
+        form = SalaryForm()
     
     context = {
         'form': form,
-        'title': 'Create Salary Record',
-        'user_profile': user_profile,
+        'is_create': True,
     }
     
     return render(request, 'employees/salary_form.html', context)
 
 @login_required
-def salary_history(request, employee_id):
-    """View salary history for an employee"""
-    user_profile = UserProfile.objects.get(user=request.user)
+def salary_update(request, pk):
+    salary = get_object_or_404(Salary, pk=pk)
     
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to view salary history.")
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
+        messages.error(request, "You don't have permission to update salaries.")
         return redirect('employees:salary_list')
     
-    employee = get_object_or_404(User, pk=employee_id)
-    salary_history = Salary.objects.filter(employee=employee).order_by('-effective_date')
+    if request.method == 'POST':
+        form = SalaryForm(request.POST, instance=salary)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Salary updated successfully.')
+            return redirect('employees:salary_list')
+    else:
+        form = SalaryForm(instance=salary)
     
     context = {
-        'employee': employee,
-        'salary_history': salary_history,
-        'user_profile': user_profile,
+        'form': form,
+        'salary': salary,
+        'is_create': False,
     }
     
-    return render(request, 'employees/salary_history.html', context)
-
-@login_required
-def salary_report(request):
-    """Generate monthly salary report"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check permissions
-    if not (user_profile.is_admin() or user_profile.is_operations_manager()):
-        messages.error(request, "You don't have permission to view salary reports.")
-        return redirect('dashboard:index')
-    
-    # Get all employees
-    employees = User.objects.filter(profile__isnull=False)
-    salary_data = []
-    total_salary = 0
-    
-    # Get month and year from request or use current month/year
-    month = request.GET.get('month', timezone.now().month)
-    year = request.GET.get('year', timezone.now().year)
-    
-    # Try to convert to integers
-    try:
-        month = int(month)
-        year = int(year)
-    except (ValueError, TypeError):
-        month = timezone.now().month
-        year = timezone.now().year
-    
-    # Calculate salary for each employee
-    for employee in employees:
-        # Get salary effective on the first day of the selected month
-        report_date = timezone.datetime(year, month, 1).date()
-        salary = Salary.objects.filter(
-            employee=employee, 
-            effective_date__lte=report_date
-        ).order_by('-effective_date').first()
-        
-        if salary:
-            total_salary += salary.amount
-            salary_data.append({
-                'employee': employee,
-                'salary': salary
-            })
-    
-    context = {
-        'salary_data': salary_data,
-        'total_salary': total_salary,
-        'month': month,
-        'year': year,
-        'user_profile': user_profile,
-    }
-    
-    return render(request, 'reports/salary_report.html', context)
+    return render(request, 'employees/salary_form.html', context)

@@ -1,81 +1,97 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
 from django.urls import reverse
+from django.contrib.auth.models import User
 from datetime import date
-from .models import Client, Project, ProjectTask
+from .models import Client, Project, ProjectStatus
 
-class ProjectModelTests(TestCase):
+class ProjectsTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
+        # Create a test user with admin role
+        self.admin_user = User.objects.create_user(
+            username='admin',
+            email='admin@example.com',
+            password='adminpassword'
+        )
+        self.admin_user.userprofile.role = 'admin'
+        self.admin_user.userprofile.save()
+        
+        # Create a test user with operations manager role
+        self.ops_user = User.objects.create_user(
+            username='opsmanager',
+            email='ops@example.com',
+            password='opspassword'
+        )
+        self.ops_user.userprofile.role = 'ops_manager'
+        self.ops_user.userprofile.save()
+        
+        # Create a test user with developer role
+        self.dev_user = User.objects.create_user(
+            username='developer',
+            email='dev@example.com',
+            password='devpassword'
+        )
+        self.dev_user.userprofile.role = 'developer'
+        self.dev_user.userprofile.save()
+        
+        # Create client
         self.client_obj = Client.objects.create(
             name='Test Client',
             email='client@example.com',
-            phone='123-456-7890'
-        )
-        self.project = Project.objects.create(
-            name='Test Project',
-            client=self.client_obj,
-            status='new',
-            start_date=date.today()
-        )
-        self.task = ProjectTask.objects.create(
-            name='Test Task',
-            project=self.project,
-            assigned_to=self.user,
-            status='todo'
-        )
-    
-    def test_client_creation(self):
-        """Test client creation"""
-        self.assertEqual(self.client_obj.name, 'Test Client')
-        self.assertEqual(self.client_obj.email, 'client@example.com')
-    
-    def test_project_creation(self):
-        """Test project creation"""
-        self.assertEqual(self.project.name, 'Test Project')
-        self.assertEqual(self.project.client, self.client_obj)
-        self.assertEqual(self.project.status, 'new')
-    
-    def test_task_creation(self):
-        """Test task creation"""
-        self.assertEqual(self.task.name, 'Test Task')
-        self.assertEqual(self.task.project, self.project)
-        self.assertEqual(self.task.assigned_to, self.user)
-        self.assertEqual(self.task.status, 'todo')
-
-class ProjectViewTests(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.client_obj = Client.objects.create(
-            name='Test Client',
-            email='client@example.com',
-            phone='123-456-7890'
-        )
-        self.project = Project.objects.create(
-            name='Test Project',
-            client=self.client_obj,
-            status='new',
-            start_date=date.today()
-        )
-        self.task = ProjectTask.objects.create(
-            name='Test Task',
-            project=self.project,
-            assigned_to=self.user,
-            status='todo'
+            phone='1234567890',
+            company='Test Company',
+            created_by=self.admin_user
         )
         
-        self.client.login(username='testuser', password='password')
+        # Create project status
+        self.status = ProjectStatus.objects.create(name='In Progress', order=1)
+        
+        # Create project
+        self.project = Project.objects.create(
+            name='Test Project',
+            client=self.client_obj,
+            description='Test Description',
+            status=self.status,
+            start_date=date.today(),
+            budget=10000.00,
+            created_by=self.admin_user
+        )
+        self.project.assigned_developers.add(self.dev_user)
     
     def test_client_list_view(self):
-        """Test client list view"""
-        response = self.client.get(reverse('client_list'))
+        # Login as admin
+        self.client.login(username='admin', password='adminpassword')
+        response = self.client.get(reverse('projects:client_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Client')
-        self.assertTemplateUsed(response, 'projects/client_list.html')
+        
+        # Login as ops manager
+        self.client.login(username='opsmanager', password='opspassword')
+        response = self.client.get(reverse('projects:client_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Client')
     
     def test_project_list_view(self):
-        """Test project list view"""
-        response = self.client.get(reverse('project_list'))
+        # Login as admin
+        self.client.login(username='admin', password='adminpassword')
+        response = self.client.get(reverse('projects:project_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Test Project')
-        self.assertTemplateUsed(response, 'projects/project_list.html')
+        
+        # Login as developer
+        self.client.login(username='developer', password='devpassword')
+        response = self.client.get(reverse('projects:project_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Project')
+    
+    def test_project_detail_view(self):
+        # Login as admin
+        self.client.login(username='admin', password='adminpassword')
+        response = self.client.get(reverse('projects:project_detail', args=[self.project.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Project')
+        
+        # Login as developer
+        self.client.login(username='developer', password='devpassword')
+        response = self.client.get(reverse('projects:project_detail', args=[self.project.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Project')

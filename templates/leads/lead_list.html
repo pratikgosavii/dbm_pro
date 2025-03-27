@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Leads | Lead Management System{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-user-tag me-2 text-purple"></i>Leads</h2>
+        <div class="d-flex gap-2">
+            {% if user.userprofile.is_admin or user.userprofile.is_manager %}
+            <a href="{% url 'leads:lead_create' %}" class="btn btn-purple animate__animated animate__fadeIn">
+                <i class="fas fa-plus me-2"></i>Add Lead
+            </a>
+            <a href="{% url 'leads:lead_import' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-file-import me-2"></i>Import Excel
+            </a>
+            <a href="{% url 'leads:facebook_import' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fab fa-facebook me-2"></i>Facebook
+            </a>
+            <a href="{% url 'leads:lead_export' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-file-export me-2"></i>Export
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Filters</h5>
+            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" action="{% url 'leads:lead_list' %}" class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-purple text-purple">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark text-light border-purple" placeholder="Search leads...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Statuses</option>
+                            {% for status in statuses %}
+                                <option value="{{ status.id }}" {% if current_status|stringformat:"s" == status.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ status.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="source" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Sources</option>
+                            {% for source in sources %}
+                                <option value="{{ source.id }}" {% if current_source|stringformat:"s" == source.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ source.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-purple w-100">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leads Table -->
+    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">Lead List</h5>
+            <span class="badge bg-dark">{{ leads.count }} leads</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover mb-0">
+                    <thead class="text-purple border-purple">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Source</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Assigned To</th>
+                            <th scope="col">Created At</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                        <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|divisibleby:10 }}0ms">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ lead.name }}</td>
+                            <td>{{ lead.email|default:"-" }}</td>
+                            <td>{{ lead.phone|default:"-" }}</td>
+                            <td>
+                                {% if lead.source %}
+                                <span class="badge bg-info">{{ lead.source.name }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lead.status %}
+                                <span class="badge bg-primary">{{ lead.status.name }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Undefined</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if lead.assigned_to %}
+                                <span class="badge bg-success">{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}</span>
+                                {% else %}
+                                <span class="badge bg-warning">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'leads:lead_detail' lead.id %}" class="btn btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'leads:lead_update' lead.id %}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if user.userprofile.is_admin or user.userprofile.is_manager %}
+                                    <a href="{% url 'leads:lead_assign' lead.id %}" class="btn btn-success">
+                                        <i class="fas fa-user-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="fas fa-folder-open fa-2x mb-3"></i>
+                                <p>No leads found. Try adjusting your filters or create a new lead.</p>
+                                {% if user.userprofile.is_admin or user.userprofile.is_manager %}
+                                <a href="{% url 'leads:lead_create' %}" class="btn btn-sm btn-purple">
+                                    <i class="fas fa-plus me-2"></i>Add Lead
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

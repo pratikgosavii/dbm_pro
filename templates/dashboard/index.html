@@ -1,560 +1,340 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Lead Management System{% endblock %}
+{% block title %}Dashboard | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Dashboard Header -->
-    <div class="row mb-4 animate__animated animate__fadeIn">
-        <div class="col-12">
-            <h1 class="page-title">
-                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-            </h1>
-            <p class="text-muted">Welcome back, {{ user.first_name }} {{ user.last_name }}!</p>
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-tachometer-alt me-2 text-purple"></i>Dashboard</h2>
+        <div>
+            <span class="badge bg-purple">{{ user.userprofile.get_role_display }}</span>
         </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="row mb-4 animate__animated animate__fadeIn animate__delay-1s">
-        <div class="col-12">
-            <div class="card card-dark quick-actions">
-                <div class="card-header">
-                    <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+    
+    <div class="row">
+        {% if user_profile.is_admin or user_profile.is_manager %}
+            <!-- Lead Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-user-tag fa-2x text-purple me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Total Leads</div>
+                                <div class="h5 mb-0 text-light">{{ total_leads|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            <span class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ new_leads_month|default:"0" }} new this month</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <!-- Attendance Check In/Out -->
-                        <div class="col-md-6 col-lg-3">
-                            {% if today_attendance and not today_attendance.time_out %}
-                                <form method="post" action="{% url 'employees:attendance' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="check_out">
-                                    <button type="submit" class="btn btn-accent btn-lg w-100">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Check Out
-                                    </button>
-                                </form>
-                            {% elif not today_attendance %}
-                                <form method="post" action="{% url 'employees:attendance' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="check_in">
-                                    <button type="submit" class="btn btn-success btn-lg w-100">
-                                        <i class="fas fa-sign-in-alt me-2"></i>Check In
-                                    </button>
-                                </form>
+            </div>
+            
+            {% if user_profile.is_manager %}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-user-check fa-2x text-warning me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Unassigned Leads</div>
+                                <div class="h5 mb-0 text-light">{{ unassigned_leads|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'leads:lead_list' %}?status=unassigned" class="btn btn-sm btn-outline-purple">View All</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+        
+        {% if user_profile.is_sales_rep %}
+            <!-- Sales Rep Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-user-tag fa-2x text-purple me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Assigned Leads</div>
+                                <div class="h5 mb-0 text-light">{{ assigned_leads|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            <span class="text-success"><i class="fas fa-arrow-up me-1"></i>{{ new_leads_month|default:"0" }} new this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if user_profile.is_admin or user_profile.is_ops_manager %}
+            <!-- Project Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-project-diagram fa-2x text-info me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Total Projects</div>
+                                <div class="h5 mb-0 text-light">{{ total_projects|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            <span class="text-primary"><i class="fas fa-circle me-1"></i>{{ active_projects|default:"0" }} active projects</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-money-bill-wave fa-2x text-success me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Monthly Payments</div>
+                                <div class="h5 mb-0 text-light">${{ total_payments|floatformat:2|default:"0.00" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            {% if last_month_payments and last_month_payments > 0 %}
+                                {% if total_payments > last_month_payments %}
+                                    <span class="text-success"><i class="fas fa-arrow-up me-1"></i>
+                                {% else %}
+                                    <span class="text-danger"><i class="fas fa-arrow-down me-1"></i>
+                                {% endif %}
+                                ${{ last_month_payments|floatformat:2 }} last month</span>
                             {% else %}
-                                <button class="btn btn-secondary btn-lg w-100" disabled>
-                                    <i class="fas fa-check-circle me-2"></i>Checked Out
-                                </button>
+                                <span class="text-muted">No data for last month</span>
                             {% endif %}
                         </div>
-
-                        <!-- Role-specific quick actions -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Employee Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-warning me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Employees Present</div>
+                                <div class="h5 mb-0 text-light">{{ employees_present|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'employees:attendance_log' %}" class="btn btn-sm btn-outline-purple">Attendance Log</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if user_profile.is_developer %}
+            <!-- Developer Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-project-diagram fa-2x text-info me-3"></i>
+                            </div>
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Assigned Projects</div>
+                                <div class="h5 mb-0 text-light">{{ assigned_projects|default:"0" }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs">
+                            <span class="text-primary"><i class="fas fa-circle me-1"></i>{{ active_projects|default:"0" }} active projects</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card bg-dark border-purple shadow h-100 py-2 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col">
+                                <div class="text-xs text-light text-uppercase mb-1">Today's Attendance</div>
+                                <div class="h5 mb-0 text-light">
+                                    {% if is_punched_in %}
+                                        {% if is_punched_out %}
+                                            <span class="text-success">Completed</span>
+                                        {% else %}
+                                            <span class="text-warning">Punched In</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-danger">Not Punched In</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            {% if not is_punched_in %}
+                                <a href="{% url 'employees:punch_in' %}" class="btn btn-sm btn-success">Punch In</a>
+                            {% elif not is_punched_out %}
+                                <a href="{% url 'employees:punch_out' %}" class="btn btn-sm btn-danger">Punch Out</a>
+                            {% else %}
+                                <span class="badge bg-success">Day Complete</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Charts & Detailed Stats -->
+    <div class="row">
+        {% if leads_by_status %}
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+                <div class="card-header bg-purple text-white py-3">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-pie me-2"></i>Leads by Status</h6>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <canvas id="leadsStatusChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if projects_by_status %}
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
+                <div class="card-header bg-purple text-white py-3">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-pie me-2"></i>Projects by Status</h6>
+                </div>
+                <div class="card-body">
+                    <div>
+                        <canvas id="projectsStatusChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Access Cards -->
+    <div class="row">
+        {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_sales_rep %}
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 0.8s;">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-user-tag me-2"></i>Lead Management</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group bg-dark">
+                        <a href="{% url 'leads:lead_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-list me-2"></i>View All Leads
+                        </a>
                         {% if user_profile.is_admin or user_profile.is_manager %}
-                            <div class="col-md-6 col-lg-3">
-                                <a href="{% url 'leads:create' %}" class="btn btn-primary btn-lg w-100">
-                                    <i class="fas fa-user-plus me-2"></i>New Lead
-                                </a>
-                            </div>
-                        {% endif %}
-
-                        {% if user_profile.is_admin or user_profile.is_operations_manager %}
-                            <div class="col-md-6 col-lg-3">
-                                <a href="{% url 'projects:payment_create' %}" class="btn btn-info btn-lg w-100">
-                                    <i class="fas fa-money-bill-wave me-2"></i>Record Payment
-                                </a>
-                            </div>
-                        {% endif %}
-
-                        {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
-                            <div class="col-md-6 col-lg-3">
-                                <a href="{% url 'employees:task_create' %}" class="btn btn-warning btn-lg w-100">
-                                    <i class="fas fa-tasks me-2"></i>Create Task
-                                </a>
-                            </div>
+                        <a href="{% url 'leads:lead_create' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-plus me-2"></i>Create New Lead
+                        </a>
+                        <a href="{% url 'leads:lead_import' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-file-import me-2"></i>Import Leads from Excel
+                        </a>
+                        <a href="{% url 'leads:facebook_import' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fab fa-facebook me-2"></i>Import Leads from Facebook
+                        </a>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Role-specific Dashboard Content -->
-    <div class="row">
-        <!-- Admin Dashboard -->
-        {% if user_profile.is_admin %}
-            <!-- First Row - Key Metrics -->
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="metric-value">{{ total_leads }}</div>
-                        <div class="metric-label">Total Leads</div>
+        {% endif %}
+        
+        {% if user_profile.is_admin or user_profile.is_ops_manager %}
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 0.9s;">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-money-bill-wave me-2"></i>Financial Management</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group bg-dark">
+                        <a href="{% url 'payments:payment_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-list me-2"></i>View All Payments
+                        </a>
+                        <a href="{% url 'payments:payment_create' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-plus me-2"></i>Add New Payment
+                        </a>
+                        <a href="{% url 'employees:salary_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-dollar-sign me-2"></i>Manage Salaries
+                        </a>
+                        <a href="{% url 'reports:payment_report' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-chart-line me-2"></i>Payment Reports
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        <div class="metric-value">{{ active_projects }}</div>
-                        <div class="metric-label">Active Projects</div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 1s;">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-project-diagram me-2"></i>Project Management</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group bg-dark">
+                        <a href="{% url 'projects:project_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-list me-2"></i>View All Projects
+                        </a>
+                        <a href="{% url 'projects:project_create' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-plus me-2"></i>Create New Project
+                        </a>
+                        <a href="{% url 'projects:client_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-building me-2"></i>Manage Clients
+                        </a>
+                        <a href="{% url 'employees:employee_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-users me-2"></i>Manage Employees
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <div class="metric-value">${{ payments_this_month|floatformat:2 }}</div>
-                        <div class="metric-label">Payments This Month</div>
+        </div>
+        {% endif %}
+        
+        {% if user_profile.is_developer %}
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-dark border-purple shadow animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-tasks me-2"></i>My Projects</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group bg-dark">
+                        <a href="{% url 'projects:project_list' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-list me-2"></i>View My Projects
+                        </a>
+                        <a href="{% url 'employees:attendance_log' %}" class="list-group-item list-group-item-action bg-dark text-light border-0">
+                            <i class="fas fa-clock me-2"></i>View My Attendance
+                        </a>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="metric-value">{{ overdue_tasks }}</div>
-                        <div class="metric-label">Overdue Tasks</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Row - Charts and Data -->
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-pie me-2"></i>Lead Status Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="leadStatusChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-line me-2"></i>Payment Comparison</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="paymentComparisonChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-        <!-- Manager Dashboard -->
-        {% elif user_profile.is_manager %}
-            <!-- First Row - Key Metrics -->
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="metric-value">{{ total_leads }}</div>
-                        <div class="metric-label">Total Leads</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-tag"></i>
-                        </div>
-                        <div class="metric-value">{{ unassigned_leads }}</div>
-                        <div class="metric-label">Unassigned Leads</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="metric-value">{{ employees_present_today }}</div>
-                        <div class="metric-label">Employees Present</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="metric-value">{{ tasks_completed_today }}</div>
-                        <div class="metric-label">Tasks Completed Today</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Row - Charts and Lists -->
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-pie me-2"></i>Lead Status Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="leadStatusChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Overdue Tasks</h5>
-                        <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Assigned To</th>
-                                        <th>Due Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if overdue_tasks > 0 %}
-                                        <tr>
-                                            <td colspan="3" class="text-center">
-                                                <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light mt-2 mb-2">
-                                                    {{ overdue_tasks }} overdue tasks - View all
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="3" class="text-center">No overdue tasks</td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        <!-- Operations Manager Dashboard -->
-        {% elif user_profile.is_operations_manager %}
-            <!-- First Row - Key Metrics -->
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        <div class="metric-value">{{ active_projects }}</div>
-                        <div class="metric-label">Active Projects</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="metric-value">{{ completed_projects }}</div>
-                        <div class="metric-label">Completed Projects</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <div class="metric-value">${{ total_payments|floatformat:2 }}</div>
-                        <div class="metric-label">Total Payments</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="metric-value">{{ overdue_tasks }}</div>
-                        <div class="metric-label">Overdue Tasks</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Row - Charts and Lists -->
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-money-check-alt me-2"></i>Recent Payments</h5>
-                        <a href="{% url 'projects:payments_list' %}" class="btn btn-sm btn-outline-light">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Project</th>
-                                        <th>Amount</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="3" class="text-center">
-                                            <a href="{% url 'projects:payments_list' %}" class="btn btn-sm btn-outline-light mt-2 mb-2">
-                                                View all payments
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-project-diagram me-2"></i>Active Projects</h5>
-                        <a href="{% url 'projects:projects_list' %}" class="btn btn-sm btn-outline-light">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Project</th>
-                                        <th>Client</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="3" class="text-center">
-                                            <a href="{% url 'projects:projects_list' %}" class="btn btn-sm btn-outline-light mt-2 mb-2">
-                                                View all projects
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        <!-- Sales Rep Dashboard -->
-        {% elif user_profile.is_sales_rep %}
-            <!-- First Row - Key Metrics -->
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="metric-value">{{ my_total_leads }}</div>
-                        <div class="metric-label">My Leads</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-tag"></i>
-                        </div>
-                        <div class="metric-value">{{ my_new_leads }}</div>
-                        <div class="metric-label">New Leads</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="metric-value">{{ my_tasks }}</div>
-                        <div class="metric-label">My Tasks</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="metric-value">{{ my_overdue_tasks }}</div>
-                        <div class="metric-label">Overdue Tasks</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Row - Charts and Lists -->
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-pie me-2"></i>My Lead Status Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="myLeadStatusChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-list-ul me-2"></i>My Tasks</h5>
-                        <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="3" class="text-center">
-                                            <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light mt-2 mb-2">
-                                                View all tasks
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        <!-- Developer Dashboard -->
-        {% elif user_profile.is_developer %}
-            <!-- First Row - Key Metrics -->
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        <div class="metric-value">{{ my_projects }}</div>
-                        <div class="metric-label">My Projects</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="metric-value">{{ my_tasks }}</div>
-                        <div class="metric-label">My Tasks</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-spinner"></i>
-                        </div>
-                        <div class="metric-value">{{ my_in_progress_tasks }}</div>
-                        <div class="metric-label">In Progress</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card card-dark metric-card animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-body">
-                        <div class="metric-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="metric-value">{{ my_overdue_tasks }}</div>
-                        <div class="metric-label">Overdue Tasks</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Second Row - Task Status Chart and Lists -->
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-pie me-2"></i>My Task Status</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="taskStatusChart" height="250"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card card-dark animate__animated animate__fadeIn animate__delay-2s">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-list-ul me-2"></i>My Tasks</h5>
-                        <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light">View All</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="3" class="text-center">
-                                            <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light mt-2 mb-2">
-                                                View all tasks
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -562,226 +342,18 @@
 
 {% block extra_js %}
 <script>
-// Common function to set dark theme for charts
-function setChartDefaults() {
-    Chart.defaults.color = '#adb5bd';
-    Chart.defaults.borderColor = '#444';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    setChartDefaults();
-    
-    // Admin and Manager - Lead Status Chart
-    {% if user_profile.is_admin or user_profile.is_manager %}
-    if(document.getElementById('leadStatusChart')) {
-        var ctx = document.getElementById('leadStatusChart').getContext('2d');
-        var statusCounts = [
-            {% for status in lead_status_counts %}
-                {{ status.count }},
-            {% endfor %}
-        ];
-        var statusLabels = [
-            {% for status in lead_status_counts %}
-                '{{ status.status|capfirst }}',
-            {% endfor %}
-        ];
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if leads_by_status %}
+        const leadsStatusLabels = [{% for item in leads_by_status %}"{{ item.status|default:'Undefined' }}",{% endfor %}];
+        const leadsStatusData = [{% for item in leads_by_status %}{{ item.count }},{% endfor %}];
+        createPieChart('leadsStatusChart', 'Leads by Status', leadsStatusLabels, leadsStatusData);
+        {% endif %}
         
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusCounts,
-                    backgroundColor: [
-                        '#6f42c1', // Primary purple
-                        '#e83e8c', // Pink
-                        '#fd7e14', // Orange
-                        '#20c997', // Teal
-                        '#17a2b8', // Cyan
-                        '#28a745', // Green
-                        '#dc3545'  // Red
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#343a40'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: '#e2e2e2',
-                            padding: 20,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    {% endif %}
-
-    // Admin - Payment Comparison Chart
-    {% if user_profile.is_admin %}
-    if(document.getElementById('paymentComparisonChart')) {
-        var ctx = document.getElementById('paymentComparisonChart').getContext('2d');
-        var paymentData = [
-            {{ payments_last_month|default:0 }},
-            {{ payments_this_month|default:0 }}
-        ];
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Last Month', 'This Month'],
-                datasets: [{
-                    label: 'Payments ($)',
-                    data: paymentData,
-                    backgroundColor: [
-                        'rgba(111, 66, 193, 0.7)', // Purple
-                        'rgba(111, 66, 193, 1)'   // Darker Purple
-                    ],
-                    borderColor: [
-                        'rgba(111, 66, 193, 1)',
-                        'rgba(111, 66, 193, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
-    {% endif %}
-
-    // Sales Rep - My Lead Status Chart
-    {% if user_profile.is_sales_rep %}
-    if(document.getElementById('myLeadStatusChart')) {
-        var ctx = document.getElementById('myLeadStatusChart').getContext('2d');
-        var statusCounts = [
-            {% for status in my_lead_status_counts %}
-                {{ status.count }},
-            {% endfor %}
-        ];
-        var statusLabels = [
-            {% for status in my_lead_status_counts %}
-                '{{ status.status|capfirst }}',
-            {% endfor %}
-        ];
-        
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusCounts,
-                    backgroundColor: [
-                        '#6f42c1', // Primary purple
-                        '#e83e8c', // Pink
-                        '#fd7e14', // Orange
-                        '#20c997', // Teal
-                        '#17a2b8', // Cyan
-                        '#28a745', // Green
-                        '#dc3545'  // Red
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#343a40'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: '#e2e2e2',
-                            padding: 20,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    {% endif %}
-
-    // Developer - Task Status Chart
-    {% if user_profile.is_developer %}
-    if(document.getElementById('taskStatusChart')) {
-        var ctx = document.getElementById('taskStatusChart').getContext('2d');
-        var taskStatusData = [
-            {{ my_todo_tasks|default:0 }},
-            {{ my_in_progress_tasks|default:0 }},
-            {{ my_review_tasks|default:0 }}
-        ];
-        
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['To Do', 'In Progress', 'Review'],
-                datasets: [{
-                    data: taskStatusData,
-                    backgroundColor: [
-                        '#e83e8c', // Pink
-                        '#6f42c1', // Purple
-                        '#fd7e14'  // Orange
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#343a40'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: '#e2e2e2',
-                            padding: 20,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    {% endif %}
-});
+        {% if projects_by_status %}
+        const projectsStatusLabels = [{% for item in projects_by_status %}"{{ item.status|default:'Undefined' }}",{% endfor %}];
+        const projectsStatusData = [{% for item in projects_by_status %}{{ item.count }},{% endfor %}];
+        createPieChart('projectsStatusChart', 'Projects by Status', projectsStatusLabels, projectsStatusData);
+        {% endif %}
+    });
 </script>
 {% endblock %}

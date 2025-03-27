@@ -1,183 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}My Profile - Lead Management System{% endblock %}
+{% block title %}My Profile | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="container-fluid animate__animated animate__fadeIn">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="page-title">
-                <i class="fas fa-user-circle me-2"></i>My Profile
-            </h1>
-            <p class="text-muted">Update your personal information</p>
-        </div>
+<div class="card bg-dark border-purple animate__animated animate__fadeIn">
+    <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>My Profile</h5>
     </div>
-    
-    <div class="row">
-        <div class="col-md-8 animate__animated animate__fadeInUp animate__delay-1s">
-            <div class="card card-dark">
-                <div class="card-header">
-                    <h5 class="mb-0">Profile Information</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
-                                {{ user_form.first_name }}
-                                {% if user_form.first_name.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ user_form.first_name.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                                {{ user_form.last_name }}
-                                {% if user_form.last_name.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ user_form.last_name.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ user_form.username.id_for_label }}" class="form-label">Username</label>
-                                {{ user_form.username }}
-                                {% if user_form.username.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ user_form.username.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
-                                {{ user_form.email }}
-                                {% if user_form.email.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ user_form.email.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ profile_form.role.id_for_label }}" class="form-label">Role</label>
-                                {{ profile_form.role }}
-                                {% if profile_form.role.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ profile_form.role.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ profile_form.phone.id_for_label }}" class="form-label">Phone</label>
-                                {{ profile_form.phone }}
-                                {% if profile_form.phone.errors %}
-                                    <div class="text-danger mt-1">
-                                        {{ profile_form.phone.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">Profile Picture URL</label>
-                            {{ profile_form.profile_picture }}
-                            {% if profile_form.profile_picture.errors %}
-                                <div class="text-danger mt-1">
-                                    {{ profile_form.profile_picture.errors }}
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="card bg-dark border-purple text-center">
+                    <div class="card-body">
+                        <div class="avatar-container mb-3">
+                            {% if user.userprofile.profile_picture %}
+                                <img src="{{ user.userprofile.profile_picture }}" class="rounded-circle profile-image" alt="{{ user.get_full_name }}">
+                            {% else %}
+                                <div class="profile-image-placeholder">
+                                    <i class="fas fa-user-circle fa-5x text-purple"></i>
                                 </div>
                             {% endif %}
                         </div>
-                        
-                        {% if user_form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in user_form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
+                        <h5 class="card-title text-light">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="card-text text-purple mb-2">
+                            <span class="badge bg-purple">{{ user.userprofile.get_role_display }}</span>
+                        </p>
+                        <p class="card-text text-muted small">
+                            <i class="fas fa-envelope me-1"></i> {{ user.email|default:"No email" }}
+                        </p>
+                        {% if user.userprofile.phone %}
+                        <p class="card-text text-muted small">
+                            <i class="fas fa-phone me-1"></i> {{ user.userprofile.phone }}
+                        </p>
                         {% endif %}
-                        
-                        {% if profile_form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in profile_form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-accent animate__animated animate__pulse">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-4 animate__animated animate__fadeInUp animate__delay-2s">
-            <div class="card card-dark profile-sidebar">
-                <div class="card-body text-center">
-                    {% if user.profile.profile_picture %}
-                        <img src="{{ user.profile.profile_picture }}" alt="{{ user.username }}" class="rounded-circle profile-avatar mb-3">
-                    {% else %}
-                        <div class="profile-avatar-placeholder mb-3">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
-                    <p class="text-muted mb-3">{{ user.profile.get_role_display }}</p>
-                    
-                    <div class="profile-details">
-                        <div class="profile-detail-item">
-                            <i class="fas fa-envelope me-2"></i>{{ user.email }}
-                        </div>
-                        {% if user.profile.phone %}
-                        <div class="profile-detail-item">
-                            <i class="fas fa-phone me-2"></i>{{ user.profile.phone }}
-                        </div>
-                        {% endif %}
-                        <div class="profile-detail-item">
-                            <i class="fas fa-calendar me-2"></i>Joined {{ user.profile.date_joined|date:"M d, Y" }}
-                        </div>
+            
+            <div class="col-md-8">
+                <div class="card bg-dark border-purple">
+                    <div class="card-header bg-dark border-purple">
+                        <h6 class="mb-0 text-purple"><i class="fas fa-edit me-2"></i>Edit Profile</h6>
                     </div>
-                    
-                    <div class="mt-4">
-                        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                        </a>
+                    <div class="card-body">
+                        <form method="post" class="animate__animated animate__fadeIn">
+                            {% csrf_token %}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_first_name" class="form-label text-light">First Name</label>
+                                    <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}" class="form-control bg-dark text-light border-purple" placeholder="First Name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_last_name" class="form-label text-light">Last Name</label>
+                                    <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:'' }}" class="form-control bg-dark text-light border-purple" placeholder="Last Name">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label text-light">Email</label>
+                                <input type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}" class="form-control bg-dark text-light border-purple" placeholder="Email">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_phone" class="form-label text-light">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_address" class="form-label text-light">Address</label>
+                                {{ form.address }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_profile_picture" class="form-label text-light">Profile Picture URL</label>
+                                {{ form.profile_picture }}
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-purple">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add animation when focusing on form fields
-    const formFields = document.querySelectorAll('.form-control');
-    formFields.forEach(field => {
-        field.addEventListener('focus', function() {
-            this.classList.add('animate__animated', 'animate__pulse');
-        });
-        field.addEventListener('blur', function() {
-            this.classList.remove('animate__animated', 'animate__pulse');
-        });
-    });
-});
-</script>
 {% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Lead Management System{% endblock %}
+
+{% block auth_content %}
+<div class="card fade-in">
+    <div class="card-header bg-primary text-white text-center py-3">
+        <h4 class="mb-0">
+            <i class="fas fa-sign-in-alt me-2"></i> Login
+        </h4>
+    </div>
+    <div class="card-body p-4">
+        <div class="text-center mb-4">
+            <i class="fas fa-project-diagram fa-3x text-primary"></i>
+            <h3 class="mt-2">Lead Management System</h3>
+            <p class="text-muted">Enter your credentials to access your account</p>
+        </div>
+        
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    <i class="fas fa-user me-2"></i>Username
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.username.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.password.id_for_label }}" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Password
+                </label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.password.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer text-center py-3">
+        <p class="mb-0">
+            Admin login: <strong>admin / admin</strong>
+        </p>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6200EA, #212121);
+        min-height: 100vh;
+    }
+    
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .card-header {
+        background: linear-gradient(to right, #6200EA, #7C4DFF);
+        border-bottom: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, #6200EA, #7C4DFF);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(98, 0, 234, 0.5);
+    }
+</style>
+{% endblock %}

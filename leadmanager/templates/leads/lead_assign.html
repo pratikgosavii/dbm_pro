@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Leads | Lead Management System{% endblock %}
+
+{% block page_title %}Assign Leads{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'leads:lead_list' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to Leads
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-check me-2"></i> Assign Leads to Sales Representative</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.assigned_to.id_for_label }}" class="form-label">Assign to Sales Representative *</label>
+                        {{ form.assigned_to }}
+                        {% if form.assigned_to.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.assigned_to.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.leads.id_for_label }}" class="form-label">Select Leads to Assign *</label>
+                        <div class="card">
+                            <div class="card-body bg-dark p-3">
+                                {{ form.leads }}
+                                {% if form.leads.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.leads.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'leads:lead_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-check me-1"></i> Assign Leads
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to the form
+        const form = document.querySelector('form');
+        const formElements = form.querySelectorAll('.form-control, .btn, .card');
+        
+        formElements.forEach((element, index) => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            element.style.transitionDelay = `${index * 0.05}s`;
+            
+            setTimeout(() => {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Select all checkbox
+        const selectAllCheckbox = document.createElement('input');
+        selectAllCheckbox.type = 'checkbox';
+        selectAllCheckbox.id = 'select-all';
+        selectAllCheckbox.className = 'form-check-input me-2';
+        
+        const selectAllLabel = document.createElement('label');
+        selectAllLabel.htmlFor = 'select-all';
+        selectAllLabel.className = 'form-check-label';
+        selectAllLabel.innerText = 'Select All';
+        
+        const selectAllContainer = document.createElement('div');
+        selectAllContainer.className = 'form-check mb-3';
+        selectAllContainer.appendChild(selectAllCheckbox);
+        selectAllContainer.appendChild(selectAllLabel);
+        
+        const leadsList = document.querySelector('.card-body.bg-dark');
+        leadsList.insertBefore(selectAllContainer, leadsList.firstChild);
+        
+        // Handle select all functionality
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = leadsList.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox !== selectAllCheckbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

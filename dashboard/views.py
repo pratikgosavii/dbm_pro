@@ -1,153 +1,215 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum
-from datetime import timedelta
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
-from accounts.models import UserProfile
-from leads.models import Lead
-from projects.models import Project, Payment
-from employees.models import Task, Attendance
+from datetime import timedelta
+from leads.models import Lead, LeadStatus
+from projects.models import Project, ProjectStatus
+from employees.models import Attendance, Salary
+from payments.models import Payment
 
 @login_required
 def index(request):
-    """Main dashboard view with role-specific data"""
-    user_profile = UserProfile.objects.get(user=request.user)
-    today = timezone.now().date()
-    this_month_start = today.replace(day=1)
-    last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+    # Get the user's profile
+    user_profile = request.user.userprofile
+    role = user_profile.role
     
+    # Get date range for dashboard stats
+    today = timezone.now().date()
+    month_start = today.replace(day=1)
+    last_month_start = (month_start - timedelta(days=1)).replace(day=1)
+    
+    # Role-specific dashboard data
     context = {
         'user_profile': user_profile,
     }
     
-    # Admin metrics
-    if user_profile.is_admin():
-        # Lead metrics
-        context['total_leads'] = Lead.objects.count()
-        context['new_leads_today'] = Lead.objects.filter(created_at__date=today).count()
-        context['lead_status_counts'] = Lead.objects.values('status').annotate(count=Count('id'))
+    # Admin Dashboard
+    if role == 'admin':
+        # Lead stats
+        total_leads = Lead.objects.count()
+        new_leads_month = Lead.objects.filter(created_at__gte=month_start).count()
         
-        # Project metrics
-        context['active_projects'] = Project.objects.filter(status__in=['new', 'in_progress']).count()
-        context['completed_projects'] = Project.objects.filter(status='completed').count()
+        # Lead by status
+        lead_statuses = LeadStatus.objects.filter(is_active=True)
+        leads_by_status = []
+        for status in lead_statuses:
+            count = Lead.objects.filter(status=status).count()
+            leads_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
         
-        # Payment metrics
-        context['total_payments'] = Payment.objects.aggregate(total=Sum('amount'))['total'] or 0
-        context['payments_this_month'] = Payment.objects.filter(
-            payment_date__gte=this_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        context['payments_last_month'] = Payment.objects.filter(
+        # Project stats
+        total_projects = Project.objects.count()
+        active_projects = Project.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today)
+        ).count()
+        
+        # Project by status
+        project_statuses = ProjectStatus.objects.filter(is_active=True)
+        projects_by_status = []
+        for status in project_statuses:
+            count = Project.objects.filter(status=status).count()
+            projects_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
+        
+        # Payment stats
+        total_payments = Payment.objects.filter(
+            payment_date__gte=month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        last_month_payments = Payment.objects.filter(
             payment_date__gte=last_month_start,
-            payment_date__lt=this_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
+            payment_date__lt=month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
         
-        # Task metrics
-        context['overdue_tasks'] = Task.objects.filter(
-            due_date__lt=today,
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-        context['tasks_completed_today'] = Task.objects.filter(
-            status='done',
-            updated_at__date=today
-        ).count()
-        
-        # Attendance metrics
-        context['employees_present_today'] = Attendance.objects.filter(date=today).count()
-    
-    # Manager metrics
-    elif user_profile.is_manager():
-        # Lead metrics
-        context['total_leads'] = Lead.objects.count()
-        context['unassigned_leads'] = Lead.objects.filter(assigned_to__isnull=True).count()
-        context['lead_status_counts'] = Lead.objects.values('status').annotate(count=Count('id'))
-        
-        # Task metrics
-        context['overdue_tasks'] = Task.objects.filter(
-            due_date__lt=today,
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-        context['tasks_completed_today'] = Task.objects.filter(
-            status='done',
-            updated_at__date=today
-        ).count()
-        
-        # Attendance metrics
-        context['employees_present_today'] = Attendance.objects.filter(date=today).count()
-    
-    # Operations Manager metrics
-    elif user_profile.is_operations_manager():
-        # Project metrics
-        context['active_projects'] = Project.objects.filter(status__in=['new', 'in_progress']).count()
-        context['completed_projects'] = Project.objects.filter(status='completed').count()
-        
-        # Payment metrics
-        context['total_payments'] = Payment.objects.aggregate(total=Sum('amount'))['total'] or 0
-        context['payments_this_month'] = Payment.objects.filter(
-            payment_date__gte=this_month_start
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Task metrics
-        context['overdue_tasks'] = Task.objects.filter(
-            due_date__lt=today,
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-    
-    # Sales Rep metrics
-    elif user_profile.is_sales_rep():
-        # My lead metrics
-        context['my_total_leads'] = Lead.objects.filter(assigned_to=request.user).count()
-        context['my_new_leads'] = Lead.objects.filter(
-            assigned_to=request.user,
-            status='new'
-        ).count()
-        context['my_lead_status_counts'] = Lead.objects.filter(
-            assigned_to=request.user
-        ).values('status').annotate(count=Count('id'))
-        
-        # My task metrics
-        context['my_tasks'] = Task.objects.filter(assigned_to=request.user).count()
-        context['my_overdue_tasks'] = Task.objects.filter(
-            assigned_to=request.user,
-            due_date__lt=today,
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-    
-    # Developer metrics
-    elif user_profile.is_developer():
-        # My project metrics
-        context['my_projects'] = Project.objects.filter(assigned_developers=request.user).count()
-        context['my_active_projects'] = Project.objects.filter(
-            assigned_developers=request.user,
-            status__in=['new', 'in_progress']
-        ).count()
-        
-        # My task metrics
-        context['my_tasks'] = Task.objects.filter(assigned_to=request.user).count()
-        context['my_todo_tasks'] = Task.objects.filter(
-            assigned_to=request.user,
-            status='todo'
-        ).count()
-        context['my_in_progress_tasks'] = Task.objects.filter(
-            assigned_to=request.user,
-            status='in_progress'
-        ).count()
-        context['my_review_tasks'] = Task.objects.filter(
-            assigned_to=request.user,
-            status='review'
-        ).count()
-        context['my_overdue_tasks'] = Task.objects.filter(
-            assigned_to=request.user,
-            due_date__lt=today,
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-    
-    # Get today's attendance for check-in button
-    try:
-        context['today_attendance'] = Attendance.objects.get(
-            employee=request.user,
+        # Employee stats
+        total_employees = Attendance.objects.filter(
             date=today
-        )
-    except Attendance.DoesNotExist:
-        context['today_attendance'] = None
+        ).count()
+        
+        context.update({
+            'total_leads': total_leads,
+            'new_leads_month': new_leads_month,
+            'leads_by_status': leads_by_status,
+            'total_projects': total_projects,
+            'active_projects': active_projects,
+            'projects_by_status': projects_by_status,
+            'total_payments': total_payments,
+            'last_month_payments': last_month_payments,
+            'total_employees': total_employees,
+        })
+    
+    # Manager Dashboard
+    elif role == 'manager':
+        # Lead stats
+        total_leads = Lead.objects.count()
+        new_leads_month = Lead.objects.filter(created_at__gte=month_start).count()
+        
+        # Unassigned leads
+        unassigned_leads = Lead.objects.filter(assigned_to__isnull=True).count()
+        
+        # Lead by status
+        lead_statuses = LeadStatus.objects.filter(is_active=True)
+        leads_by_status = []
+        for status in lead_statuses:
+            count = Lead.objects.filter(status=status).count()
+            leads_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
+            
+        context.update({
+            'total_leads': total_leads,
+            'new_leads_month': new_leads_month,
+            'unassigned_leads': unassigned_leads,
+            'leads_by_status': leads_by_status,
+        })
+    
+    # Sales Rep Dashboard
+    elif role == 'sales_rep':
+        # Lead stats for this sales rep
+        assigned_leads = Lead.objects.filter(assigned_to=request.user).count()
+        new_leads_month = Lead.objects.filter(
+            assigned_to=request.user,
+            created_at__gte=month_start
+        ).count()
+        
+        # Lead by status
+        lead_statuses = LeadStatus.objects.filter(is_active=True)
+        leads_by_status = []
+        for status in lead_statuses:
+            count = Lead.objects.filter(
+                assigned_to=request.user,
+                status=status
+            ).count()
+            leads_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
+            
+        context.update({
+            'assigned_leads': assigned_leads,
+            'new_leads_month': new_leads_month,
+            'leads_by_status': leads_by_status,
+        })
+    
+    # Operations Manager Dashboard
+    elif role == 'ops_manager':
+        # Project stats
+        total_projects = Project.objects.count()
+        active_projects = Project.objects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today)
+        ).count()
+        
+        # Project by status
+        project_statuses = ProjectStatus.objects.filter(is_active=True)
+        projects_by_status = []
+        for status in project_statuses:
+            count = Project.objects.filter(status=status).count()
+            projects_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
+        
+        # Payment stats
+        total_payments = Payment.objects.filter(
+            payment_date__gte=month_start
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        # Employee attendance today
+        employees_present = Attendance.objects.filter(
+            date=today,
+            status='present'
+        ).count()
+        
+        context.update({
+            'total_projects': total_projects,
+            'active_projects': active_projects,
+            'projects_by_status': projects_by_status,
+            'total_payments': total_payments,
+            'employees_present': employees_present,
+        })
+    
+    # Developer Dashboard
+    elif role == 'developer':
+        # Project stats for this developer
+        assigned_projects = request.user.assigned_projects.count()
+        active_projects = request.user.assigned_projects.filter(
+            Q(end_date__isnull=True) | Q(end_date__gt=today)
+        ).count()
+        
+        # Project by status
+        project_statuses = ProjectStatus.objects.filter(is_active=True)
+        projects_by_status = []
+        for status in project_statuses:
+            count = request.user.assigned_projects.filter(status=status).count()
+            projects_by_status.append({
+                'status': status.name,
+                'count': count,
+            })
+        
+        # Get current attendance status
+        try:
+            today_attendance = Attendance.objects.get(
+                employee=request.user,
+                date=today
+            )
+            is_punched_in = bool(today_attendance.punch_in_time)
+            is_punched_out = bool(today_attendance.punch_out_time)
+        except Attendance.DoesNotExist:
+            is_punched_in = False
+            is_punched_out = False
+        
+        context.update({
+            'assigned_projects': assigned_projects,
+            'active_projects': active_projects,
+            'projects_by_status': projects_by_status,
+            'is_punched_in': is_punched_in,
+            'is_punched_out': is_punched_out,
+        })
     
     return render(request, 'dashboard/index.html', context)

@@ -1,257 +1,276 @@
 {% extends 'base.html' %}
 
-{% block title %}Payment Report - Lead Management System{% endblock %}
+{% block title %}Payment Report | Lead Management System{% endblock %}
 
 {% block content %}
-<div class="report-container animate__animated animate__fadeIn">
-    <!-- Report Header -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="page-title">
-                <i class="fas fa-chart-line me-2"></i>Payment Report
-            </h1>
-            <p class="text-muted">Analysis of payment transactions and revenue</p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <div class="btn-group animate__animated animate__fadeInRight">
-                <button onclick="window.print()" class="btn btn-secondary">
-                    <i class="fas fa-print me-2"></i>Print Report
-                </button>
-                <a href="{% url 'projects:payments_list' %}" class="btn btn-primary">
-                    <i class="fas fa-money-bill-wave me-2"></i>Payments
-                </a>
-                <a href="{% url 'projects:projects_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-project-diagram me-2"></i>Projects
-                </a>
-            </div>
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light"><i class="fas fa-chart-line me-2 text-purple"></i>Payment Report</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-chart-bar me-2"></i>Sales Report
+            </a>
+            <a href="{% url 'reports:salary_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+                <i class="fas fa-chart-pie me-2"></i>Salary Report
+            </a>
         </div>
     </div>
-
-    <!-- Report Filter Card -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+    
+    <!-- Filters -->
+    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
+        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
-        <div class="card-body">
-            <form method="get" action="{% url 'projects:payments_list' %}">
-                <div class="row">
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form method="get" action="{% url 'reports:payment_report' %}" class="row g-3">
                     <div class="col-md-3">
-                        <div class="mb-3">
-                            <label for="start_date" class="form-label">From Date</label>
-                            <input type="date" id="start_date" name="start_date" class="form-control" 
-                                  value="{{ filter_form.start_date.value|default:'' }}">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-purple text-purple">
+                                <i class="fas fa-calendar"></i>
+                            </span>
+                            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control bg-dark text-light border-purple" placeholder="Start Date">
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="mb-3">
-                            <label for="end_date" class="form-label">To Date</label>
-                            <input type="date" id="end_date" name="end_date" class="form-control"
-                                  value="{{ filter_form.end_date.value|default:'' }}">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-purple text-purple">
+                                <i class="fas fa-calendar"></i>
+                            </span>
+                            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control bg-dark text-light border-purple" placeholder="End Date">
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label for="project" class="form-label">Project</label>
-                            <select id="project" name="project" class="form-control">
-                                <option value="">All Projects</option>
-                                <!-- In a real implementation, this would be populated with project options -->
-                            </select>
-                        </div>
+                    <div class="col-md-4">
+                        <select name="project" class="form-select bg-dark text-light border-purple">
+                            <option value="">All Projects</option>
+                            {% for proj in projects %}
+                                <option value="{{ proj.id }}" {% if current_project|stringformat:"s" == proj.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ proj.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>Generate Report
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-purple w-100">
+                            <i class="fas fa-filter me-2"></i>Generate Report
                         </button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-
-    <!-- Payment Summary Card -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-2s">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="fas fa-money-bill-wave me-2"></i>Payment Summary
-            </h5>
+    
+    <!-- Report Summary -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Total Payments</h6>
+                            <h2 class="text-light mb-0">{{ total_payments }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-purple p-3">
+                            <i class="fas fa-receipt fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Period: {{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 text-center">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Total Payments</h6>
-                        <h2 class="text-accent">${{ total_payments|default:"0.00" }}</h2>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Total Amount</h6>
+                            <h2 class="text-light mb-0">${{ total_amount|floatformat:2 }}</h2>
+                        </div>
+                        <div class="rounded-circle bg-success p-3">
+                            <i class="fas fa-dollar-sign fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        From {{ total_payments }} payments
                     </div>
                 </div>
-                <div class="col-md-3 text-center border-start">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Number of Transactions</h6>
-                        <h2>{{ payments.paginator.count|default:"0" }}</h2>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center border-start">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Average Payment</h6>
-                        <h2 class="text-info">
-                            {% if payments.paginator.count > 0 %}
-                                ${{ total_payments|divide:payments.paginator.count|floatformat:2 }}
-                            {% else %}
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Average Payment</h6>
+                            <h2 class="text-light mb-0">
+                                {% if total_payments > 0 %}
+                                ${{ total_amount|floatformat:2 }}
+                                {% else %}
                                 $0.00
-                            {% endif %}
-                        </h2>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center border-start">
-                    <div class="report-metric">
-                        <h6 class="text-muted">Date Range</h6>
-                        <h2>
-                            {% if filter_form.start_date.value %}
-                                {{ filter_form.start_date.value|slice:":10" }}
-                                {% if filter_form.end_date.value %}
-                                    to {{ filter_form.end_date.value|slice:":10" }}
                                 {% endif %}
-                            {% elif filter_form.end_date.value %}
-                                Until {{ filter_form.end_date.value|slice:":10" }}
-                            {% else %}
-                                All Time
-                            {% endif %}
-                        </h2>
+                            </h2>
+                        </div>
+                        <div class="rounded-circle bg-info p-3">
+                            <i class="fas fa-calculator fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        Per payment in selected period
                     </div>
                 </div>
             </div>
-            
-            <div class="row mt-4">
-                <div class="col-md-8">
-                    <canvas id="paymentTrendChart" height="250"></canvas>
-                </div>
-                <div class="col-md-4">
-                    <canvas id="paymentMethodChart" height="250"></canvas>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-purple mb-1">Top Project</h6>
+                            <h2 class="text-light mb-0">
+                                {% if payments_by_project.0.project__name %}
+                                {{ payments_by_project.0.project__name|truncatechars:12 }}
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </h2>
+                        </div>
+                        <div class="rounded-circle bg-warning p-3">
+                            <i class="fas fa-project-diagram fa-2x text-dark"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-muted small">
+                        {% if payments_by_project.0.total %}
+                        ${{ payments_by_project.0.total|floatformat:2 }} total payments
+                        {% else %}
+                        No project data available
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Project-wise Payment Summary -->
-    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-3s">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="fas fa-project-diagram me-2"></i>Project-wise Payment Summary
-            </h5>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Daily Payment Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyPaymentsChart" height="300"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover m-0">
-                    <thead>
-                        <tr>
-                            <th>Project Name</th>
-                            <th>Client</th>
-                            <th>Total Payments</th>
-                            <th>Last Payment</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- In a real implementation, this would be populated with project data -->
-                        <tr class="project-row animate__animated animate__fadeIn">
-                            <td><strong>Website Redesign</strong></td>
-                            <td>Acme Corporation</td>
-                            <td class="text-accent">$5,500.00</td>
-                            <td>Sep 15, 2023</td>
-                            <td><span class="badge bg-primary">In Progress</span></td>
-                        </tr>
-                        <tr class="project-row animate__animated animate__fadeIn">
-                            <td><strong>Mobile App Development</strong></td>
-                            <td>Tech Innovators</td>
-                            <td class="text-accent">$12,750.00</td>
-                            <td>Sep 28, 2023</td>
-                            <td><span class="badge bg-primary">In Progress</span></td>
-                        </tr>
-                        <tr class="project-row animate__animated animate__fadeIn">
-                            <td><strong>E-commerce Platform</strong></td>
-                            <td>Retail Solutions</td>
-                            <td class="text-accent">$8,200.00</td>
-                            <td>Sep 10, 2023</td>
-                            <td><span class="badge bg-success">Completed</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Payment by Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusPieChart" height="300"></canvas>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Recent Payments Table -->
-    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-4s">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2"></i>Recent Payment Transactions
-                </h5>
-                <a href="{% url 'projects:payments_list' %}" class="btn btn-sm btn-outline-light">
-                    View All Payments
-                </a>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover m-0">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Project</th>
-                            <th>Client</th>
-                            <th>Amount</th>
-                            <th>Method</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if payments %}
-                            {% for payment in payments|slice:":5" %}
-                                <tr class="payment-row animate__animated animate__fadeIn">
-                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
-                                    <td>{{ payment.project.name }}</td>
-                                    <td>{{ payment.project.client.name }}</td>
-                                    <td class="text-accent">${{ payment.amount|floatformat:2 }}</td>
+    
+    <!-- Data Tables Row -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Payments by Project</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover mb-0">
+                            <thead class="text-purple border-purple">
+                                <tr>
+                                    <th scope="col">Project</th>
+                                    <th scope="col">Count</th>
+                                    <th scope="col">Total Amount</th>
+                                    <th scope="col">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in payments_by_project %}
+                                <tr>
+                                    <td>{{ project.project__name|default:"Undefined" }}</td>
+                                    <td>{{ project.count }}</td>
+                                    <td>${{ project.total|floatformat:2 }}</td>
                                     <td>
-                                        {% if payment.payment_method == 'cash' %}
-                                            <span class="badge bg-success">Cash</span>
-                                        {% elif payment.payment_method == 'bank_transfer' %}
-                                            <span class="badge bg-primary">Bank Transfer</span>
-                                        {% elif payment.payment_method == 'credit_card' %}
-                                            <span class="badge bg-info">Credit Card</span>
-                                        {% elif payment.payment_method == 'paypal' %}
-                                            <span class="badge bg-secondary">PayPal</span>
+                                        {% if total_amount > 0 %}
+                                        {{ project.total|div:total_amount|mul:100|floatformat:1 }}%
+                                        <div class="progress bg-dark">
+                                            <div class="progress-bar bg-purple" role="progressbar" style="width: {{ project.total|div:total_amount|mul:100|floatformat:1 }}%" aria-valuenow="{{ project.total|div:total_amount|mul:100|floatformat:1 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
                                         {% else %}
-                                            <span class="badge bg-light text-dark">{{ payment.get_payment_method_display }}</span>
+                                        0%
                                         {% endif %}
                                     </td>
-                                    <td>{{ payment.description|default:"-" }}</td>
                                 </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <div class="empty-state">
-                                        <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
-                                        <h5>No payment data available</h5>
-                                        <p class="text-muted">No payment records found for the selected filters</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="report-summary">
-                    <span><strong>Report Generated:</strong> {{ now|date:"F d, Y H:i" }}</span>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+                <div class="card-header bg-dark border-purple text-purple">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payments by Method</h5>
                 </div>
-                <div class="report-actions">
-                    <button onclick="window.print()" class="btn btn-sm btn-outline-light">
-                        <i class="fas fa-print me-1"></i>Print
-                    </button>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover mb-0">
+                            <thead class="text-purple border-purple">
+                                <tr>
+                                    <th scope="col">Payment Method</th>
+                                    <th scope="col">Count</th>
+                                    <th scope="col">Total Amount</th>
+                                    <th scope="col">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for method in payments_by_method %}
+                                <tr>
+                                    <td>{{ method.payment_method__name|default:"Not Specified" }}</td>
+                                    <td>{{ method.count }}</td>
+                                    <td>${{ method.total|floatformat:2 }}</td>
+                                    <td>
+                                        {% if total_amount > 0 %}
+                                        {{ method.total|div:total_amount|mul:100|floatformat:1 }}%
+                                        <div class="progress bg-dark">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ method.total|div:total_amount|mul:100|floatformat:1 }}%" aria-valuenow="{{ method.total|div:total_amount|mul:100|floatformat:1 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        {% else %}
+                                        0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -261,138 +280,103 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add hover animation for payment rows
-    const paymentRows = document.querySelectorAll('.payment-row');
-    paymentRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.classList.add('animate__pulse');
-        });
-        row.addEventListener('mouseleave', function() {
-            this.classList.remove('animate__pulse');
-        });
-    });
-    
-    // Add hover animation for project rows
-    const projectRows = document.querySelectorAll('.project-row');
-    projectRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.classList.add('animate__pulse');
-        });
-        row.addEventListener('mouseleave', function() {
-            this.classList.remove('animate__pulse');
-        });
-    });
-    
-    // Set chart defaults
-    Chart.defaults.color = '#adb5bd';
-    Chart.defaults.borderColor = '#444';
-    
-    // Payment Trend Chart - Last 6 months
-    if(document.getElementById('paymentTrendChart')) {
-        // Placeholder data - in a real app, this would be populated from the backend
-        const months = ['May', 'June', 'July', 'August', 'September', 'October'];
-        const paymentAmounts = [4800, 5200, 7500, 6300, 8100, 9200];
-        
-        const ctx = document.getElementById('paymentTrendChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
+    document.addEventListener('DOMContentLoaded', function() {
+        // Daily Payments Chart
+        const dailyPaymentsCtx = document.getElementById('dailyPaymentsChart').getContext('2d');
+        const dailyPaymentsChart = new Chart(dailyPaymentsCtx, {
+            type: 'bar',
             data: {
-                labels: months,
+                labels: [{% for item in daily_payments %}"{{ item.date }}",{% endfor %}],
                 datasets: [{
-                    label: 'Monthly Payments ($)',
-                    data: paymentAmounts,
-                    backgroundColor: 'rgba(111, 66, 193, 0.2)', // Purple with transparency
-                    borderColor: 'rgba(111, 66, 193, 1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true,
-                    pointBackgroundColor: '#6f42c1',
-                    pointRadius: 4
+                    label: 'Payment Amount ($)',
+                    data: [{% for item in daily_payments %}{{ item.amount }},{% endfor %}],
+                    backgroundColor: 'rgba(128, 90, 213, 0.7)',
+                    borderColor: 'rgba(128, 90, 213, 1)',
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Payment Trend - Last 6 Months',
-                        color: '#e2e2e2'
+                    legend: {
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        },
                         grid: {
                             color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2',
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
-                            }
                         }
                     },
                     x: {
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        },
                         grid: {
                             color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#e2e2e2'
                         }
                     }
                 }
             }
         });
-    }
-    
-    // Payment Method Chart
-    if(document.getElementById('paymentMethodChart')) {
-        // Placeholder data - in a real app, this would be populated from the backend
-        const paymentMethods = ['Bank Transfer', 'Credit Card', 'Cash', 'PayPal', 'Other'];
-        const paymentMethodAmounts = [45, 25, 15, 10, 5];
         
-        const ctx = document.getElementById('paymentMethodChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
+        // Status Pie Chart
+        const statusPieCtx = document.getElementById('statusPieChart').getContext('2d');
+        const statusPieChart = new Chart(statusPieCtx, {
+            type: 'pie',
             data: {
-                labels: paymentMethods,
+                labels: [{% for item in payments_by_status %}"{{ item.status|default:'Undefined' }}",{% endfor %}],
                 datasets: [{
-                    data: paymentMethodAmounts,
+                    data: [{% for item in payments_by_status %}{{ item.total }},{% endfor %}],
                     backgroundColor: [
-                        '#0d6efd', // Bank Transfer - Blue
-                        '#17a2b8', // Credit Card - Cyan
-                        '#28a745', // Cash - Green
-                        '#6c757d', // PayPal - Gray
-                        '#ffc107'  // Other - Yellow
+                        'rgba(75, 192, 192, 0.8)', // completed
+                        'rgba(255, 159, 64, 0.8)', // pending
+                        'rgba(255, 99, 132, 0.8)', // failed
+                        'rgba(54, 162, 235, 0.8)'  // refunded
                     ],
-                    borderWidth: 1,
-                    borderColor: '#343a40'
+                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Payment Methods (%)',
-                        color: '#e2e2e2'
-                    },
                     legend: {
                         position: 'right',
                         labels: {
-                            color: '#e2e2e2',
-                            font: {
-                                size: 12
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
                     }
                 }
             }
         });
-    }
-});
+    });
 </script>
 {% endblock %}
