@@ -5,22 +5,22 @@
 {% block content %}
 <div class="animate__animated animate__fadeIn">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-light"><i class="fas fa-chart-pie me-2 text-purple"></i>Salary Report</h2>
+        <h2 class="text-dark"><i class="fas fa-chart-pie me-2 text-primary"></i>Salary Report</h2>
         <div class="d-flex gap-2">
-            <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <a href="{% url 'reports:sales_report' %}" class="btn btn-outline-primary animate__animated animate__fadeIn">
                 <i class="fas fa-chart-bar me-2"></i>Sales Report
             </a>
-            <a href="{% url 'reports:payment_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <a href="{% url 'reports:payment_report' %}" class="btn btn-outline-primary animate__animated animate__fadeIn">
                 <i class="fas fa-chart-line me-2"></i>Payment Report
             </a>
         </div>
     </div>
     
     <!-- Filters -->
-    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
-        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Report Filters</h5>
-            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+    <div class="card mb-4 animate__animated animate__fadeIn">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-primary"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+            <button class="btn btn-link text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
                 <i class="fas fa-chevron-down"></i>
             </button>
         </div>
@@ -28,7 +28,7 @@
             <div class="card-body">
                 <form method="get" action="{% url 'reports:salary_report' %}" class="row g-3">
                     <div class="col-md-5">
-                        <select name="month" class="form-select bg-dark text-light border-purple">
+                        <select name="month" class="form-select">
                             <option value="">All Months</option>
                             {% for m in month_choices %}
                                 <option value="{{ m.0 }}" {% if current_month == m.0 %}selected{% endif %}>
@@ -38,7 +38,7 @@
                         </select>
                     </div>
                     <div class="col-md-5">
-                        <select name="year" class="form-select bg-dark text-light border-purple">
+                        <select name="year" class="form-select">
                             <option value="">All Years</option>
                             {% for y in year_choices %}
                                 <option value="{{ y }}" {% if current_year == y %}selected{% endif %}>
@@ -48,7 +48,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-purple w-100">
+                        <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-filter me-2"></i>Generate Report
                         </button>
                     </div>
@@ -60,21 +60,23 @@
     <!-- Report Summary -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.1s;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-purple mb-1">Total Employees</h6>
-                            <h2 class="text-light mb-0">{{ total_salaries }}</h2>
+                            <h6 class="text-primary mb-1">Total Employees</h6>
+                            <h2 class="text-dark mb-0">{{ total_salaries }}</h2>
                         </div>
-                        <div class="rounded-circle bg-purple p-3">
-                            <i class="fas fa-users fa-2x text-dark"></i>
+                        <div class="rounded-circle bg-primary p-3">
+                            <i class="fas fa-users fa-2x text-white"></i>
                         </div>
                     </div>
                     <div class="mt-3 text-muted small">
                         Period: 
                         {% if current_month %}
-                            {{ month_choices|dictkey:current_month }} 
+                            {% for m in month_choices %}
+                                {% if m.0 == current_month %}{{ m.1 }}{% endif %}
+                            {% endfor %}
                         {% else %}
                             All Months
                         {% endif %}
@@ -85,15 +87,15 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.2s;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-purple mb-1">Total Salary</h6>
-                            <h2 class="text-light mb-0">${{ total_salary|floatformat:2 }}</h2>
+                            <h6 class="text-success mb-1">Total Salary</h6>
+                            <h2 class="text-dark mb-0">${{ total_salary|floatformat:2 }}</h2>
                         </div>
                         <div class="rounded-circle bg-success p-3">
-                            <i class="fas fa-dollar-sign fa-2x text-dark"></i>
+                            <i class="fas fa-dollar-sign fa-2x text-white"></i>
                         </div>
                     </div>
                     <div class="mt-3 text-muted small">
@@ -104,17 +106,17 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.3s;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-purple mb-1">Total Bonus</h6>
-                            <h2 class="text-light mb-0">
+                            <h6 class="text-info mb-1">Total Bonus</h6>
+                            <h2 class="text-dark mb-0">
                                 ${{ total_bonus|floatformat:2 }}
                             </h2>
                         </div>
                         <div class="rounded-circle bg-info p-3">
-                            <i class="fas fa-plus-circle fa-2x text-dark"></i>
+                            <i class="fas fa-plus-circle fa-2x text-white"></i>
                         </div>
                     </div>
                     <div class="mt-3 text-muted small">
@@ -125,17 +127,17 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
+            <div class="card animate__animated animate__fadeIn" style="animation-delay: 0.4s;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-purple mb-1">Net Payout</h6>
-                            <h2 class="text-light mb-0">
+                            <h6 class="text-warning mb-1">Net Payout</h6>
+                            <h2 class="text-dark mb-0">
                                 ${{ net_payout|floatformat:2 }}
                             </h2>
                         </div>
                         <div class="rounded-circle bg-warning p-3">
-                            <i class="fas fa-calculator fa-2x text-dark"></i>
+                            <i class="fas fa-calculator fa-2x text-white"></i>
                         </div>
                     </div>
                     <div class="mt-3 text-muted small">
@@ -149,9 +151,9 @@
     <!-- Charts Row -->
     <div class="row mb-4">
         <div class="col-lg-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
-                <div class="card-header bg-dark border-purple text-purple">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Salary Components</h5>
+            <div class="card animate__animated animate__fadeIn">
+                <div class="card-header">
+                    <h5 class="mb-0 text-primary"><i class="fas fa-chart-pie me-2"></i>Salary Components</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="componentsChart" height="300"></canvas>
@@ -160,9 +162,9 @@
         </div>
         
         <div class="col-lg-6 mb-4">
-            <div class="card bg-dark border-purple animate__animated animate__fadeIn">
-                <div class="card-header bg-dark border-purple text-purple">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Salary by Status</h5>
+            <div class="card animate__animated animate__fadeIn">
+                <div class="card-header">
+                    <h5 class="mb-0 text-primary"><i class="fas fa-chart-pie me-2"></i>Salary by Status</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="statusPieChart" height="300"></canvas>
@@ -172,15 +174,15 @@
     </div>
     
     <!-- Salary Detail Table -->
-    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
-        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0">Salary Details</h5>
-            <span class="badge bg-dark">{{ salaries.count }} records</span>
+    <div class="card animate__animated animate__fadeIn">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-primary">Salary Details</h5>
+            <span class="badge bg-primary">{{ salaries.count }} records</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-dark table-striped table-hover mb-0">
-                    <thead class="text-purple border-purple">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
                         <tr>
                             <th scope="col">Employee</th>
                             <th scope="col">Month, Year</th>
@@ -196,7 +198,7 @@
                         {% for salary in salaries %}
                         <tr>
                             <td>
-                                <a href="{% url 'employees:employee_detail' salary.employee.id %}" class="text-light text-decoration-none">
+                                <a href="{% url 'employees:employee_detail' salary.employee.id %}" class="text-decoration-none">
                                     {{ salary.employee.get_full_name|default:salary.employee.username }}
                                 </a>
                             </td>
@@ -265,11 +267,11 @@
                         {{ total_deduction|default:0 }}
                     ],
                     backgroundColor: [
-                        'rgba(128, 90, 213, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(255, 99, 132, 0.8)'
+                        'rgba(13, 110, 253, 0.8)',
+                        'rgba(25, 135, 84, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
                     ],
-                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderColor: 'rgba(255, 255, 255, 1)',
                     borderWidth: 2
                 }]
             },
@@ -279,7 +281,7 @@
                     legend: {
                         position: 'right',
                         labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         }
                     },
                     tooltip: {
@@ -306,11 +308,11 @@
                 datasets: [{
                     data: [{% for item in salaries_by_status %}{{ item.total }},{% endfor %}],
                     backgroundColor: [
-                        'rgba(75, 192, 192, 0.8)', // paid
+                        'rgba(25, 135, 84, 0.8)', // paid
                         'rgba(255, 159, 64, 0.8)', // pending
-                        'rgba(255, 99, 132, 0.8)', // cancelled
+                        'rgba(220, 53, 69, 0.8)', // cancelled
                     ],
-                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderColor: 'rgba(255, 255, 255, 1)',
                     borderWidth: 2
                 }]
             },
@@ -320,7 +322,7 @@
                     legend: {
                         position: 'right',
                         labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         }
                     },
                     tooltip: {

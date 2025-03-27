@@ -5,22 +5,22 @@
 {% block content %}
 <div class="animate__animated animate__fadeIn">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-light"><i class="fas fa-chart-bar me-2 text-purple"></i>Sales Report</h2>
+        <h2 class="text-dark"><i class="fas fa-chart-bar me-2 text-primary"></i>Sales Report</h2>
         <div class="d-flex gap-2">
-            <a href="{% url 'reports:payment_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <a href="{% url 'reports:payment_report' %}" class="btn btn-outline-primary animate__animated animate__fadeIn">
                 <i class="fas fa-chart-line me-2"></i>Payment Report
             </a>
-            <a href="{% url 'reports:salary_report' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <a href="{% url 'reports:salary_report' %}" class="btn btn-outline-primary animate__animated animate__fadeIn">
                 <i class="fas fa-chart-pie me-2"></i>Salary Report
             </a>
         </div>
     </div>
     
     <!-- Filters -->
-    <div class="card bg-dark border-purple mb-4 animate__animated animate__fadeIn">
-        <div class="card-header bg-dark border-purple d-flex justify-content-between align-items-center py-3">
-            <h5 class="mb-0 text-purple"><i class="fas fa-filter me-2"></i>Report Filters</h5>
-            <button class="btn btn-link text-purple" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+    <div class="card mb-4 animate__animated animate__fadeIn">
+        <div class="card-header d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 text-primary"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+            <button class="btn btn-link text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
                 <i class="fas fa-chevron-down"></i>
             </button>
         </div>
@@ -29,22 +29,22 @@
                 <form method="get" action="{% url 'reports:sales_report' %}" class="row g-3">
                     <div class="col-md-4">
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-purple text-purple">
+                            <span class="input-group-text">
                                 <i class="fas fa-calendar"></i>
                             </span>
-                            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control bg-dark text-light border-purple" placeholder="Start Date">
+                            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="form-control" placeholder="Start Date">
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-purple text-purple">
+                            <span class="input-group-text">
                                 <i class="fas fa-calendar"></i>
                             </span>
-                            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control bg-dark text-light border-purple" placeholder="End Date">
+                            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="form-control" placeholder="End Date">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <select name="sales_rep" class="form-select bg-dark text-light border-purple">
+                        <select name="sales_rep" class="form-select">
                             <option value="">All Sales Reps</option>
                             {% for rep in sales_reps %}
                                 <option value="{{ rep.id }}" {% if current_rep|stringformat:"s" == rep.id|stringformat:"s" %}selected{% endif %}>
@@ -54,7 +54,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-purple w-100">
+                        <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-filter me-2"></i>Generate Report
                         </button>
                     </div>
@@ -306,10 +306,10 @@
                 datasets: [{
                     label: 'Number of Leads',
                     data: [{% for item in daily_leads %}{{ item.count }},{% endfor %}],
-                    backgroundColor: 'rgba(128, 90, 213, 0.2)',
-                    borderColor: 'rgba(128, 90, 213, 1)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
                     borderWidth: 2,
-                    pointBackgroundColor: 'rgba(128, 90, 213, 1)',
+                    pointBackgroundColor: 'rgba(13, 110, 253, 1)',
                     tension: 0.4
                 }]
             },
@@ -318,7 +318,7 @@
                 plugins: {
                     legend: {
                         labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         }
                     },
                     tooltip: {
@@ -330,18 +330,18 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         },
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.1)'
                         }
                     },
                     x: {
                         ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         },
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                            color: 'rgba(0, 0, 0, 0.1)'
                         }
                     }
                 }
@@ -357,15 +357,15 @@
                 datasets: [{
                     data: [{% for item in leads_by_status %}{{ item.count }},{% endfor %}],
                     backgroundColor: [
-                        'rgba(128, 90, 213, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(13, 110, 253, 0.8)',
+                        'rgba(25, 135, 84, 0.8)',
                         'rgba(255, 159, 64, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(255, 205, 86, 0.8)',
-                        'rgba(153, 102, 255, 0.8)'
+                        'rgba(32, 201, 151, 0.8)',
+                        'rgba(220, 53, 69, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(108, 117, 125, 0.8)'
                     ],
-                    borderColor: 'rgba(25, 25, 25, 1)',
+                    borderColor: 'rgba(255, 255, 255, 1)',
                     borderWidth: 2
                 }]
             },
@@ -375,7 +375,7 @@
                     legend: {
                         position: 'right',
                         labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
+                            color: 'rgba(33, 37, 41, 0.8)'
                         }
                     }
                 }

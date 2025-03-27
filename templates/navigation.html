@@ -1,61 +1,61 @@
 <div id="sidebar" class="bg-white border-end shadow-sm">
     <div class="sidebar-heading text-center py-4">
-        <h3 class="animate__animated animate__pulse animate__infinite text-red"><i class="fas fa-chart-line me-2"></i>LMS</h3>
+        <h3 class="animate__animated animate__pulse animate__infinite text-primary"><i class="fas fa-chart-line me-2"></i>LMS</h3>
     </div>
     
     <div class="list-group list-group-flush mt-3">
         <a href="{% url 'dashboard:index' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
-            <i class="fas fa-tachometer-alt me-2 text-red"></i>Dashboard
+            <i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard
         </a>
         
         {% if user.userprofile.is_admin or user.userprofile.is_manager or user.userprofile.is_sales_rep %}
         <a href="{% url 'leads:lead_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'leads' %}active{% endif %}">
-            <i class="fas fa-user-tag me-2 text-red"></i>Leads
+            <i class="fas fa-user-tag me-2 text-primary"></i>Leads
         </a>
         {% endif %}
         
         {% if user.userprofile.is_admin or user.userprofile.is_ops_manager or user.userprofile.is_developer %}
         <a href="{% url 'projects:project_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'projects' and '/clients/' not in request.path %}active{% endif %}">
-            <i class="fas fa-project-diagram me-2 text-red"></i>Projects
+            <i class="fas fa-project-diagram me-2 text-primary"></i>Projects
         </a>
         {% endif %}
         
         {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
         <a href="{% url 'projects:client_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/clients/' in request.path %}active{% endif %}">
-            <i class="fas fa-building me-2 text-red"></i>Clients
+            <i class="fas fa-building me-2 text-primary"></i>Clients
         </a>
         
         <a href="{% url 'payments:payment_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'payments' %}active{% endif %}">
-            <i class="fas fa-money-bill-wave me-2 text-red"></i>Payments
+            <i class="fas fa-money-bill-wave me-2 text-primary"></i>Payments
         </a>
         
         <a href="{% url 'employees:employee_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'employees' and '/salaries/' not in request.path and '/attendance/' not in request.path %}active{% endif %}">
-            <i class="fas fa-users me-2 text-red"></i>Employees
+            <i class="fas fa-users me-2 text-primary"></i>Employees
         </a>
         
         <a href="{% url 'employees:salary_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/salaries/' in request.path %}active{% endif %}">
-            <i class="fas fa-dollar-sign me-2 text-red"></i>Salaries
+            <i class="fas fa-dollar-sign me-2 text-primary"></i>Salaries
         </a>
         {% endif %}
         
         <!-- All users can view attendance -->
         <a href="{% url 'employees:attendance_log' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/attendance/' in request.path %}active{% endif %}">
-            <i class="fas fa-clock me-2 text-red"></i>Attendance
+            <i class="fas fa-clock me-2 text-primary"></i>Attendance
         </a>
         
         {% if user.userprofile.is_admin or user.userprofile.is_manager %}
         <a href="{% url 'reports:sales_report' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'reports' and '/sales/' in request.path %}active{% endif %}">
-            <i class="fas fa-chart-bar me-2 text-red"></i>Sales Report
+            <i class="fas fa-chart-bar me-2 text-primary"></i>Sales Report
         </a>
         {% endif %}
         
         {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
         <a href="{% url 'reports:payment_report' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'reports' and '/payments/' in request.path %}active{% endif %}">
-            <i class="fas fa-chart-line me-2 text-red"></i>Payment Report
+            <i class="fas fa-chart-line me-2 text-primary"></i>Payment Report
         </a>
         
         <a href="{% url 'reports:salary_report' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'reports' and '/salaries/' in request.path %}active{% endif %}">
-            <i class="fas fa-chart-pie me-2 text-red"></i>Salary Report
+            <i class="fas fa-chart-pie me-2 text-primary"></i>Salary Report
         </a>
         {% endif %}
     </div>

@@ -149,10 +149,24 @@ def payment_report(request):
         total=Sum('amount')
     ).order_by('-total')
     
+    # Calculate percentages for payment methods
+    for method in payments_by_method:
+        if total_amount > 0:
+            method['percentage'] = (method['total'] / total_amount) * 100
+        else:
+            method['percentage'] = 0
+    
     payments_by_project = payments.values('project__name').annotate(
         count=Count('id'),
         total=Sum('amount')
     ).order_by('-total')
+    
+    # Calculate percentages for projects
+    for project in payments_by_project:
+        if total_amount > 0:
+            project['percentage'] = (project['total'] / total_amount) * 100
+        else:
+            project['percentage'] = 0
     
     # Daily payment trend
     date_range = (end_date - start_date).days + 1

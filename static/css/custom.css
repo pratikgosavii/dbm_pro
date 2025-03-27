@@ -1,17 +1,22 @@
 /* 
 * Custom styling for Lead Management System
-* Light & Red Theme
+* Minimalist Theme
 */
 
 :root {
-    --red-primary: #D70654;
-    --red-secondary: #C00548;
-    --red-dark: #A8043E;
-    --light-bg: #F2EFE7;
-    --light-secondary: #E5E2DA;
-    --light-tertiary: #D8D5CD;
+    --primary: #3E64FF;
+    --primary-light: #5A7DFF;
+    --primary-dark: #2645CC;
+    --accent: #FF5A5F;
+    --light-bg: #F8F9FA;
+    --light-secondary: #E9ECEF;
+    --light-tertiary: #DEE2E6;
     --text-dark: #212529;
     --text-muted: #6c757d;
+    --success: #42B883;
+    --warning: #FFC107;
+    --danger: #FF5A5F;
+    --info: #4FC3F7;
 }
 
 /* General Styles */
@@ -31,47 +36,90 @@ body {
     color: var(--text-dark) !important;
 }
 
-.text-red {
-    color: var(--red-primary) !important;
+.text-primary {
+    color: var(--primary) !important;
 }
 
-.btn-purple, .btn-red {
-    background-color: var(--red-primary);
+.text-accent {
+    color: var(--accent) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary);
     color: white;
     border: none;
     transition: all 0.3s;
 }
 
-.btn-purple:hover, .btn-red:hover {
-    background-color: var(--red-secondary);
+.btn-primary:hover {
+    background-color: var(--primary-dark);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.btn-outline-purple, .btn-outline-red {
-    border: 1px solid var(--red-primary);
-    color: var(--red-primary);
+.btn-accent {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-accent:hover {
+    background-color: #e34145;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
     background-color: transparent;
     transition: all 0.3s;
 }
 
-.btn-outline-purple:hover, .btn-outline-red:hover {
-    background-color: var(--red-primary);
+.btn-outline-primary:hover {
+    background-color: var(--primary);
     color: white;
     transform: translateY(-2px);
 }
 
-.bg-purple, .bg-red {
-    background-color: var(--red-primary) !important;
+.btn-outline-accent {
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background-color: transparent;
+    transition: all 0.3s;
 }
 
-.text-purple, .text-red {
-    color: var(--red-primary) !important;
+.btn-outline-accent:hover {
+    background-color: var(--accent);
+    color: white;
+    transform: translateY(-2px);
 }
 
-.border-purple, .border-red {
-    border-color: var(--red-primary) !important;
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+.bg-accent {
+    background-color: var(--accent) !important;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+.text-accent {
+    color: var(--accent) !important;
+}
+
+.border-primary {
+    border-color: var(--primary) !important;
+}
+
+.border-accent {
+    border-color: var(--accent) !important;
 }
 
 .bg-grey {
@@ -90,8 +138,8 @@ body {
 
 .form-control:focus, .form-select:focus {
     background-color: white;
-    border-color: var(--red-primary);
-    box-shadow: 0 0 0 0.25rem rgba(215, 6, 84, 0.25);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(62, 100, 255, 0.25);
     color: var(--text-dark);
 }
 
@@ -188,7 +236,7 @@ body {
     left: 0;
     width: 3px;
     height: 100%;
-    background-color: var(--red-primary);
+    background-color: var(--primary);
     transform: scaleY(0);
     transition: transform 0.3s;
     z-index: -1;
@@ -200,13 +248,13 @@ body {
 }
 
 #sidebar .list-group-item:hover {
-    background-color: rgba(215, 6, 84, 0.05);
-    color: var(--red-primary);
+    background-color: rgba(62, 100, 255, 0.05);
+    color: var(--primary);
 }
 
 #sidebar .list-group-item.active {
-    background-color: rgba(215, 6, 84, 0.1);
-    color: var(--red-primary);
+    background-color: rgba(62, 100, 255, 0.1);
+    color: var(--primary);
     border-color: transparent;
     font-weight: 600;
 }
@@ -237,7 +285,7 @@ body {
 
 .card-header {
     border-bottom: 1px solid rgba(0,0,0,0.1);
-    background-color: rgba(215, 6, 84, 0.03);
+    background-color: rgba(62, 100, 255, 0.03);
     color: var(--text-dark);
     font-weight: 600;
 }
@@ -248,7 +296,7 @@ body {
     height: 100px;
     object-fit: cover;
     border-radius: 50%;
-    border: 3px solid var(--red-primary);
+    border: 3px solid var(--primary);
     background-color: white;
 }
 
@@ -257,7 +305,7 @@ body {
     height: 150px;
     object-fit: cover;
     border-radius: 50%;
-    border: 4px solid var(--red-primary);
+    border: 4px solid var(--primary);
     background-color: white;
 }
 
@@ -288,16 +336,16 @@ body {
 }
 
 .table tbody tr:hover {
-    background-color: rgba(215, 6, 84, 0.05) !important;
+    background-color: rgba(62, 100, 255, 0.05) !important;
 }
 
 .table thead tr {
-    background-color: rgba(215, 6, 84, 0.1);
+    background-color: rgba(62, 100, 255, 0.1);
     font-weight: 600;
 }
 
 .table thead th {
-    border-bottom: 2px solid var(--red-primary) !important;
+    border-bottom: 2px solid var(--primary) !important;
 }
 
 /* Dropdown Styling */
@@ -315,8 +363,8 @@ body {
 }
 
 .dropdown-item:hover {
-    background-color: rgba(215, 6, 84, 0.05);
-    color: var(--red-primary) !important;
+    background-color: rgba(62, 100, 255, 0.05);
+    color: var(--primary) !important;
 }
 
 .dropdown-divider {
@@ -423,7 +471,7 @@ body {
 }
 
 .progress-bar {
-    background-color: var(--red-primary);
+    background-color: var(--primary);
 }
 
 /* Custom Badge styling */
@@ -434,7 +482,7 @@ body {
 }
 
 .badge-primary {
-    background-color: var(--red-primary);
+    background-color: var(--primary);
     color: white;
 }
 
@@ -484,15 +532,15 @@ body {
 }
 
 .page-item.active .page-link {
-    background-color: var(--red-primary);
-    border-color: var(--red-primary);
+    background-color: var(--primary);
+    border-color: var(--primary);
     color: white;
 }
 
 .page-item .page-link:hover {
-    background-color: rgba(215, 6, 84, 0.05);
-    color: var(--red-primary);
-    border-color: var(--red-primary);
+    background-color: rgba(62, 100, 255, 0.05);
+    color: var(--primary);
+    border-color: var(--primary);
 }
 
 /* Custom checkboxes */
@@ -502,8 +550,8 @@ body {
 }
 
 .form-check-input:checked {
-    background-color: var(--red-primary);
-    border-color: var(--red-primary);
+    background-color: var(--primary);
+    border-color: var(--primary);
 }
 
 /* Toast notifications */
@@ -523,7 +571,7 @@ body {
 /* Enhance focus */
 :focus {
     outline: none !important;
-    box-shadow: 0 0 0 0.25rem rgba(215, 6, 84, 0.15) !important;
+    box-shadow: 0 0 0 0.25rem rgba(62, 100, 255, 0.15) !important;
 }
 
 /* Button with status dropdown */
@@ -539,8 +587,8 @@ body {
 }
 
 .btn-status:hover {
-    background-color: rgba(215, 6, 84, 0.05);
-    border-color: var(--red-primary);
+    background-color: rgba(62, 100, 255, 0.05);
+    border-color: var(--primary);
 }
 
 .btn-status i {
