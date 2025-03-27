@@ -1,11 +1,11 @@
-<div id="sidebar" class="bg-white border-end shadow-sm">
+<div id="sidebar" class="border-end shadow-sm" style="background-color: var(--dark-bg);">
     <div class="sidebar-heading text-center py-4">
-        <h3 class="animate__animated animate__pulse animate__infinite text-primary"><i class="fas fa-chart-line me-2"></i>LMS</h3>
+        <h3 class="animate__animated animate__pulse animate__infinite text-white"><i class="fas fa-chart-line me-2 text-secondary"></i>LMS</h3>
     </div>
     
     <div class="list-group list-group-flush mt-3">
-        <a href="{% url 'dashboard:index' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
-            <i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard
+        <a href="{% url 'dashboard:index' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
         </a>
         
         {% if user.userprofile.is_admin or user.userprofile.is_manager or user.userprofile.is_sales_rep %}
