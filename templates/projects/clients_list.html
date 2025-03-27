@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Clients - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="clients-container animate__animated animate__fadeIn">
+    <!-- Clients Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-building me-2"></i>Clients
+            </h1>
+            <p class="text-muted">Manage your client information</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+            <div class="animate__animated animate__fadeInRight">
+                <a href="{% url 'projects:client_create' %}" class="btn btn-accent">
+                    <i class="fas fa-plus me-2"></i>New Client
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="get" action="{% url 'projects:clients_list' %}" class="animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search clients..." value="{{ search_query }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Clients List
+                </h5>
+                <span class="badge bg-accent">{{ clients.paginator.count }} Clients</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                            <th>Projects</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if clients %}
+                            {% for client in clients %}
+                                <tr class="client-row animate__animated animate__fadeIn">
+                                    <td><strong>{{ client.name }}</strong></td>
+                                    <td>{{ client.contact_person }}</td>
+                                    <td>{{ client.email }}</td>
+                                    <td>{{ client.phone }}</td>
+                                    <td>
+                                        {% if client.website %}
+                                            <a href="{{ client.website }}" target="_blank" class="text-accent">
+                                                <i class="fas fa-external-link-alt me-1"></i>Website
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ client.projects.count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'projects:client_update' client.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                                            <a href="{% url 'projects:client_delete' client.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-building fa-3x mb-3"></i>
+                                        <h5>No clients found</h5>
+                                        <p class="text-muted">Try adjusting your search or add a new client</p>
+                                        {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                                        <a href="{% url 'projects:client_create' %}" class="btn btn-accent mt-3">
+                                            <i class="fas fa-plus me-2"></i>Add New Client
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            {% if clients.paginator.num_pages > 1 %}
+            <nav aria-label="Clients pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if clients.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}search={{ search_query }}&{% endif %}page=1">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ clients.previous_page_number }}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ clients.number }} of {{ clients.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if clients.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ clients.next_page_number }}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}search={{ search_query }}&{% endif %}page={{ clients.paginator.num_pages }}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for client rows
+    const clientRows = document.querySelectorAll('.client-row');
+    clientRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

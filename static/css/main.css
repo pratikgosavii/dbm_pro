@@ -1,0 +1,866 @@
+/* 
+ * Main CSS for Lead Management System
+ * Dark Purple and Black Minimalist Theme
+ */
+
+/* ---------- Base Styles ---------- */
+:root {
+    --primary: #6f42c1;      /* Purple */
+    --primary-dark: #5e35b1;
+    --primary-light: #9575cd;
+    --accent: #c642c6;       /* Accent Purple */
+    --dark: #1a1a1a;         /* Almost Black */
+    --dark-light: #2c2c2c;   /* Lighter Black */
+    --gray-dark: #343a40;
+    --gray: #495057;
+    --gray-light: #6c757d;
+    --light: #e2e2e2;
+    --danger: #dc3545;
+    --success: #28a745;
+    --info: #17a2b8;
+    --warning: #ffc107;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--dark);
+    color: var(--light);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* ---------- Layout ---------- */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    min-height: calc(100vh - 56px);
+    padding-top: 1rem;
+}
+
+.container-fluid {
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+}
+
+/* ---------- Cards ---------- */
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.card-dark {
+    background-color: var(--dark-light);
+    color: var(--light);
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.8rem 1rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.8rem 1rem;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+    background-color: var(--dark-light);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.navbar-dark .navbar-brand:hover {
+    color: var(--primary-light);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--light);
+    padding: 0.5rem 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: var(--primary-light);
+}
+
+.navbar-dark .navbar-nav .active > .nav-link {
+    color: var(--accent);
+}
+
+.dropdown-menu {
+    background-color: var(--dark-light);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+    color: var(--light);
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary-dark);
+    color: white;
+}
+
+.dropdown-divider {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Forms ---------- */
+.form-control {
+    background-color: var(--gray-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--light);
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background-color: var(--gray-dark);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-section-title {
+    color: var(--primary-light);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.required-asterisk {
+    color: var(--danger);
+    margin-left: 0.25rem;
+}
+
+.btn {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-accent {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.btn-accent:hover {
+    background-color: #ae37ae;
+    border-color: #ae37ae;
+    color: white;
+}
+
+.btn-outline-light {
+    color: var(--light);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* ---------- Tables ---------- */
+.table {
+    color: var(--light);
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.table td {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.1);
+}
+
+.table-hover tbody tr.overdue:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.pagination .page-link {
+    background-color: var(--dark-light);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--light);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--gray-light);
+}
+
+/* ---------- Badges & Status Indicators ---------- */
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.6em;
+    font-size: 0.75em;
+}
+
+.bg-accent {
+    background-color: var(--accent);
+}
+
+.text-accent {
+    color: var(--accent);
+}
+
+.developer-badge {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background-color: var(--primary);
+    color: white;
+    font-weight: 500;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+}
+
+.developers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+/* ---------- Dashboard Components ---------- */
+.dashboard-container {
+    padding-bottom: 2rem;
+}
+
+.metric-card {
+    text-align: center;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+.metric-card .card-body {
+    padding: 1.5rem;
+}
+
+.metric-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-light);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: var(--gray-light);
+}
+
+.quick-actions .btn {
+    margin-bottom: 0.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+/* ---------- Detail Views ---------- */
+.detail-item {
+    margin-bottom: 1rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--gray-light);
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-size: 1rem;
+}
+
+.detail-description {
+    white-space: pre-line;
+}
+
+/* ---------- User Profiles & Images ---------- */
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary-dark);
+    margin: 0 auto;
+}
+
+.profile-avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--gray-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.profile-avatar-placeholder i {
+    font-size: 4rem;
+    color: var(--gray-light);
+}
+
+.employee-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+}
+
+.employee-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.employee-avatar i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+/* ---------- Delete Confirmation Pages ---------- */
+.delete-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.delete-card {
+    border-left: 4px solid var(--danger);
+}
+
+.delete-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ---------- Login/Register Pages ---------- */
+.login-container, .register-container {
+    background-color: var(--dark);
+}
+
+/* ---------- Empty States ---------- */
+.empty-state {
+    padding: 2rem;
+    text-align: center;
+}
+
+.empty-state i {
+    color: var(--gray-light);
+    margin-bottom: 1rem;
+}
+
+/* ---------- Timeline for History Views ---------- */
+.salary-timeline {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.salary-timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 70px;
+    width: 4px;
+    background-color: var(--primary);
+    z-index: 1;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 100px;
+}
+
+.timeline-point {
+    position: absolute;
+    left: 62px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    border: 4px solid var(--dark-light);
+    z-index: 2;
+}
+
+.timeline-date {
+    position: absolute;
+    left: 0;
+    width: 60px;
+    text-align: right;
+    font-weight: 500;
+    color: var(--primary-light);
+}
+
+.timeline-content {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    position: relative;
+    margin-top: -20px;
+}
+
+.timeline-content::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid var(--dark-light);
+}
+
+/* ---------- Reports ---------- */
+.report-container {
+    padding-bottom: 2rem;
+}
+
+.report-metric {
+    padding: 1rem;
+}
+
+.report-badge {
+    padding: 0.5rem 1rem;
+    background-color: var(--primary);
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    background-color: rgba(111, 66, 193, 0.1);
+}
+
+.info-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: var(--primary);
+}
+
+.info-content h5 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.info-content p {
+    margin-bottom: 0;
+    color: var(--gray-light);
+}
+
+/* ---------- Attendance Page ---------- */
+.time-badge {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.time-badge-label {
+    font-size: 0.9rem;
+    color: var(--gray-light);
+    margin-bottom: 0.5rem;
+}
+
+.time-badge-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-light);
+}
+
+.pending-checkout {
+    color: var(--warning);
+}
+
+/* ---------- Project Detail ---------- */
+.developers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.developer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.developer-card:hover {
+    background-color: rgba(111, 66, 193, 0.1);
+}
+
+.developer-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+}
+
+.developer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.developer-avatar i {
+    font-size: 2rem;
+    color: white;
+}
+
+.developer-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.developer-username {
+    font-size: 0.85rem;
+    color: var(--gray-light);
+}
+
+/* ---------- Import Lead Page ---------- */
+.import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.import-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 0;
+    margin: 0;
+}
+
+.import-option-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(111, 66, 193, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.import-option-icon i {
+    font-size: 1.5rem;
+    color: var(--primary-light);
+}
+
+.import-option-text h6 {
+    margin-bottom: 0.25rem;
+}
+
+.form-check-input:checked + .form-check-label .import-option-icon {
+    background-color: var(--primary);
+}
+
+.form-check-input:checked + .form-check-label .import-option-icon i {
+    color: white;
+}
+
+.guidelines-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.guidelines-list li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+/* ---------- Messages ---------- */
+.messages-container {
+    margin-bottom: 1rem;
+}
+
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* ---------- Custom Animations ---------- */
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ---------- Responsive Adjustments ---------- */
+@media (max-width: 992px) {
+    .navbar-nav {
+        padding: 1rem 0;
+    }
+    
+    .timeline-item {
+        padding-left: 60px;
+    }
+    
+    .timeline-date {
+        width: 50px;
+        font-size: 0.8rem;
+    }
+    
+    .timeline-point {
+        left: 46px;
+    }
+    
+    .salary-timeline::before {
+        left: 55px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-avatar-placeholder {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .time-badge-value {
+        font-size: 1.4rem;
+    }
+    
+    .developers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .metric-card .card-body {
+        padding: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 1.8rem;
+    }
+    
+    .delete-icon {
+        font-size: 3rem;
+    }
+    
+    .developer-card {
+        padding: 0.75rem;
+    }
+    
+    .timeline-item {
+        padding-left: 50px;
+    }
+    
+    .timeline-date {
+        width: 40px;
+        font-size: 0.7rem;
+    }
+    
+    .timeline-point {
+        left: 36px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .salary-timeline::before {
+        left: 44px;
+    }
+}
+
+/* ---------- Print Styles ---------- */
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .card-dark {
+        background-color: white;
+        color: black;
+    }
+    
+    .card-header, .card-footer {
+        background-color: #f8f9fa;
+        border-color: #ddd;
+    }
+    
+    .navbar, .btn, .messages-container, .pagination {
+        display: none !important;
+    }
+    
+    .text-muted {
+        color: #6c757d !important;
+    }
+    
+    .text-accent {
+        color: #6f42c1 !important;
+    }
+    
+    .table {
+        color: black;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        border-color: #ddd;
+    }
+    
+    .table td {
+        border-color: #ddd;
+    }
+    
+    .badge {
+        border: 1px solid #ddd;
+        background-color: #f8f9fa !important;
+        color: black !important;
+    }
+}

@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Report - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="report-container animate__animated animate__fadeIn">
+    <!-- Report Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-chart-line me-2"></i>Payment Report
+            </h1>
+            <p class="text-muted">Analysis of payment transactions and revenue</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group animate__animated animate__fadeInRight">
+                <button onclick="window.print()" class="btn btn-secondary">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+                <a href="{% url 'projects:payments_list' %}" class="btn btn-primary">
+                    <i class="fas fa-money-bill-wave me-2"></i>Payments
+                </a>
+                <a href="{% url 'projects:projects_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-project-diagram me-2"></i>Projects
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Filter Card -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'projects:payments_list' %}">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">From Date</label>
+                            <input type="date" id="start_date" name="start_date" class="form-control" 
+                                  value="{{ filter_form.start_date.value|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">To Date</label>
+                            <input type="date" id="end_date" name="end_date" class="form-control"
+                                  value="{{ filter_form.end_date.value|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label for="project" class="form-label">Project</label>
+                            <select id="project" name="project" class="form-control">
+                                <option value="">All Projects</option>
+                                <!-- In a real implementation, this would be populated with project options -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Summary Card -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-money-bill-wave me-2"></i>Payment Summary
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Total Payments</h6>
+                        <h2 class="text-accent">${{ total_payments|default:"0.00" }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center border-start">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Number of Transactions</h6>
+                        <h2>{{ payments.paginator.count|default:"0" }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center border-start">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Average Payment</h6>
+                        <h2 class="text-info">
+                            {% if payments.paginator.count > 0 %}
+                                ${{ total_payments|divide:payments.paginator.count|floatformat:2 }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center border-start">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Date Range</h6>
+                        <h2>
+                            {% if filter_form.start_date.value %}
+                                {{ filter_form.start_date.value|slice:":10" }}
+                                {% if filter_form.end_date.value %}
+                                    to {{ filter_form.end_date.value|slice:":10" }}
+                                {% endif %}
+                            {% elif filter_form.end_date.value %}
+                                Until {{ filter_form.end_date.value|slice:":10" }}
+                            {% else %}
+                                All Time
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <canvas id="paymentTrendChart" height="250"></canvas>
+                </div>
+                <div class="col-md-4">
+                    <canvas id="paymentMethodChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project-wise Payment Summary -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-3s">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-project-diagram me-2"></i>Project-wise Payment Summary
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Client</th>
+                            <th>Total Payments</th>
+                            <th>Last Payment</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- In a real implementation, this would be populated with project data -->
+                        <tr class="project-row animate__animated animate__fadeIn">
+                            <td><strong>Website Redesign</strong></td>
+                            <td>Acme Corporation</td>
+                            <td class="text-accent">$5,500.00</td>
+                            <td>Sep 15, 2023</td>
+                            <td><span class="badge bg-primary">In Progress</span></td>
+                        </tr>
+                        <tr class="project-row animate__animated animate__fadeIn">
+                            <td><strong>Mobile App Development</strong></td>
+                            <td>Tech Innovators</td>
+                            <td class="text-accent">$12,750.00</td>
+                            <td>Sep 28, 2023</td>
+                            <td><span class="badge bg-primary">In Progress</span></td>
+                        </tr>
+                        <tr class="project-row animate__animated animate__fadeIn">
+                            <td><strong>E-commerce Platform</strong></td>
+                            <td>Retail Solutions</td>
+                            <td class="text-accent">$8,200.00</td>
+                            <td>Sep 10, 2023</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments Table -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-4s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Recent Payment Transactions
+                </h5>
+                <a href="{% url 'projects:payments_list' %}" class="btn btn-sm btn-outline-light">
+                    View All Payments
+                </a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Project</th>
+                            <th>Client</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if payments %}
+                            {% for payment in payments|slice:":5" %}
+                                <tr class="payment-row animate__animated animate__fadeIn">
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td>{{ payment.project.name }}</td>
+                                    <td>{{ payment.project.client.name }}</td>
+                                    <td class="text-accent">${{ payment.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if payment.payment_method == 'cash' %}
+                                            <span class="badge bg-success">Cash</span>
+                                        {% elif payment.payment_method == 'bank_transfer' %}
+                                            <span class="badge bg-primary">Bank Transfer</span>
+                                        {% elif payment.payment_method == 'credit_card' %}
+                                            <span class="badge bg-info">Credit Card</span>
+                                        {% elif payment.payment_method == 'paypal' %}
+                                            <span class="badge bg-secondary">PayPal</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ payment.get_payment_method_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.description|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
+                                        <h5>No payment data available</h5>
+                                        <p class="text-muted">No payment records found for the selected filters</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="report-summary">
+                    <span><strong>Report Generated:</strong> {{ now|date:"F d, Y H:i" }}</span>
+                </div>
+                <div class="report-actions">
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for payment rows
+    const paymentRows = document.querySelectorAll('.payment-row');
+    paymentRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for project rows
+    const projectRows = document.querySelectorAll('.project-row');
+    projectRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Set chart defaults
+    Chart.defaults.color = '#adb5bd';
+    Chart.defaults.borderColor = '#444';
+    
+    // Payment Trend Chart - Last 6 months
+    if(document.getElementById('paymentTrendChart')) {
+        // Placeholder data - in a real app, this would be populated from the backend
+        const months = ['May', 'June', 'July', 'August', 'September', 'October'];
+        const paymentAmounts = [4800, 5200, 7500, 6300, 8100, 9200];
+        
+        const ctx = document.getElementById('paymentTrendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Monthly Payments ($)',
+                    data: paymentAmounts,
+                    backgroundColor: 'rgba(111, 66, 193, 0.2)', // Purple with transparency
+                    borderColor: 'rgba(111, 66, 193, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#6f42c1',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Payment Trend - Last 6 Months',
+                        color: '#e2e2e2'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e2e2e2',
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e2e2e2'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Payment Method Chart
+    if(document.getElementById('paymentMethodChart')) {
+        // Placeholder data - in a real app, this would be populated from the backend
+        const paymentMethods = ['Bank Transfer', 'Credit Card', 'Cash', 'PayPal', 'Other'];
+        const paymentMethodAmounts = [45, 25, 15, 10, 5];
+        
+        const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: paymentMethods,
+                datasets: [{
+                    data: paymentMethodAmounts,
+                    backgroundColor: [
+                        '#0d6efd', // Bank Transfer - Blue
+                        '#17a2b8', // Credit Card - Cyan
+                        '#28a745', // Cash - Green
+                        '#6c757d', // PayPal - Gray
+                        '#ffc107'  // Other - Yellow
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#343a40'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Payment Methods (%)',
+                        color: '#e2e2e2'
+                    },
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#e2e2e2',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

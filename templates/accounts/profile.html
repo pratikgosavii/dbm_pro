@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid animate__animated animate__fadeIn">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="page-title">
+                <i class="fas fa-user-circle me-2"></i>My Profile
+            </h1>
+            <p class="text-muted">Update your personal information</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="card card-dark">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                                {% if user_form.first_name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ user_form.first_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                                {% if user_form.last_name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ user_form.last_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.username.id_for_label }}" class="form-label">Username</label>
+                                {{ user_form.username }}
+                                {% if user_form.username.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ user_form.username.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ user_form.email }}
+                                {% if user_form.email.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ user_form.email.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.role.id_for_label }}" class="form-label">Role</label>
+                                {{ profile_form.role }}
+                                {% if profile_form.role.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ profile_form.role.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.phone.id_for_label }}" class="form-label">Phone</label>
+                                {{ profile_form.phone }}
+                                {% if profile_form.phone.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ profile_form.phone.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">Profile Picture URL</label>
+                            {{ profile_form.profile_picture }}
+                            {% if profile_form.profile_picture.errors %}
+                                <div class="text-danger mt-1">
+                                    {{ profile_form.profile_picture.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if user_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in user_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if profile_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in profile_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-accent animate__animated animate__pulse">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 animate__animated animate__fadeInUp animate__delay-2s">
+            <div class="card card-dark profile-sidebar">
+                <div class="card-body text-center">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture }}" alt="{{ user.username }}" class="rounded-circle profile-avatar mb-3">
+                    {% else %}
+                        <div class="profile-avatar-placeholder mb-3">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                    <p class="text-muted mb-3">{{ user.profile.get_role_display }}</p>
+                    
+                    <div class="profile-details">
+                        <div class="profile-detail-item">
+                            <i class="fas fa-envelope me-2"></i>{{ user.email }}
+                        </div>
+                        {% if user.profile.phone %}
+                        <div class="profile-detail-item">
+                            <i class="fas fa-phone me-2"></i>{{ user.profile.phone }}
+                        </div>
+                        {% endif %}
+                        <div class="profile-detail-item">
+                            <i class="fas fa-calendar me-2"></i>Joined {{ user.profile.date_joined|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation when focusing on form fields
+    const formFields = document.querySelectorAll('.form-control');
+    formFields.forEach(field => {
+        field.addEventListener('focus', function() {
+            this.classList.add('animate__animated', 'animate__pulse');
+        });
+        field.addEventListener('blur', function() {
+            this.classList.remove('animate__animated', 'animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

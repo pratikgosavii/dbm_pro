@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+
+{% block title %}Salary Report - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="report-container animate__animated animate__fadeIn">
+    <!-- Report Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-chart-pie me-2"></i>Salary Report
+            </h1>
+            <p class="text-muted">Monthly salary expense analysis and breakdown</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group animate__animated animate__fadeInRight">
+                <button onclick="window.print()" class="btn btn-secondary">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+                <a href="{% url 'employees:salary_list' %}" class="btn btn-primary">
+                    <i class="fas fa-dollar-sign me-2"></i>Salary Management
+                </a>
+                <a href="{% url 'employees:employees_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-users me-2"></i>Employees
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Filter Card -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Report Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'employees:salary_report' %}">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Month</label>
+                            <select name="month" class="form-control">
+                                <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                                <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                                <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                                <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                                <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                                <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                                <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                                <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                                <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                                <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                                <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                                <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Year</label>
+                            <select name="year" class="form-control">
+                                {% for y in "2020"|make_list|add:"2021"|make_list|add:"2022"|make_list|add:"2023"|make_list|add:"2024"|make_list %}
+                                <option value="{{ y }}" {% if year == y|add:0 %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Summary Card -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i>Salary Summary - {{ month|get_month_name }} {{ year }}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Total Employees</h6>
+                        <h2>{{ salary_data|length }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center border-start border-end">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Total Monthly Salary</h6>
+                        <h2 class="text-accent">${{ total_salary|floatformat:2 }}</h2>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="report-metric">
+                        <h6 class="text-muted">Average Salary</h6>
+                        <h2 class="text-info">
+                            {% if salary_data|length > 0 %}
+                                ${{ total_salary|divide:salary_data|length|floatformat:2 }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <canvas id="salaryDistributionChart" height="250"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="salaryByRoleChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Salary Table -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-3s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Detailed Salary Breakdown
+                </h5>
+                <div class="report-badge">{{ month|get_month_name }} {{ year }}</div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Role</th>
+                            <th>Salary</th>
+                            <th>Effective Since</th>
+                            <th>Employee Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if salary_data %}
+                            {% for item in salary_data %}
+                                <tr class="salary-row animate__animated animate__fadeIn">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="employee-avatar me-2">
+                                                {% if item.employee.profile.profile_picture %}
+                                                    <img src="{{ item.employee.profile.profile_picture }}" alt="{{ item.employee.username }}">
+                                                {% else %}
+                                                    <i class="fas fa-user-circle"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <strong>{{ item.employee.first_name }} {{ item.employee.last_name }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% with role=item.employee.profile.role %}
+                                            {% if role == 'admin' %}
+                                                <span class="badge bg-danger">Admin</span>
+                                            {% elif role == 'manager' %}
+                                                <span class="badge bg-warning">Manager</span>
+                                            {% elif role == 'operations_manager' %}
+                                                <span class="badge bg-success">Operations Manager</span>
+                                            {% elif role == 'sales_rep' %}
+                                                <span class="badge bg-info">Sales Rep</span>
+                                            {% elif role == 'developer' %}
+                                                <span class="badge bg-primary">Developer</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td class="text-accent">${{ item.salary.amount|floatformat:2 }}</td>
+                                    <td>{{ item.salary.effective_date|date:"M d, Y" }}</td>
+                                    <td><span class="badge bg-success">Active</span></td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
+                                        <h5>No salary data available</h5>
+                                        <p class="text-muted">No salary records found for the selected period</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="report-summary">
+                    <span class="me-3"><strong>Total Employees:</strong> {{ salary_data|length }}</span>
+                    <span><strong>Total Monthly Salary:</strong> ${{ total_salary|floatformat:2 }}</span>
+                </div>
+                <div class="report-actions">
+                    <button onclick="window.print()" class="btn btn-sm btn-outline-light">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for salary rows
+    const salaryRows = document.querySelectorAll('.salary-row');
+    salaryRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Set chart defaults
+    Chart.defaults.color = '#adb5bd';
+    Chart.defaults.borderColor = '#444';
+    
+    // Salary Distribution Chart
+    if(document.getElementById('salaryDistributionChart')) {
+        // Placeholder data - in a real app, this would be populated from the backend
+        const salaryRanges = ['0-1000', '1001-2000', '2001-3000', '3001-4000', '4001+'];
+        const salaryDistribution = [2, 5, 8, 3, 2];
+        
+        const ctx = document.getElementById('salaryDistributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: salaryRanges,
+                datasets: [{
+                    label: 'Number of Employees',
+                    data: salaryDistribution,
+                    backgroundColor: 'rgba(111, 66, 193, 0.7)', // Purple
+                    borderColor: 'rgba(111, 66, 193, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Salary Distribution',
+                        color: '#e2e2e2'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e2e2e2'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#e2e2e2'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Salary by Role Chart
+    if(document.getElementById('salaryByRoleChart')) {
+        // Placeholder data - in a real app, this would be populated from the backend
+        const roles = ['Admin', 'Manager', 'Operations', 'Developer', 'Sales Rep'];
+        const avgSalaryByRole = [3500, 3000, 2800, 2500, 2200];
+        
+        const ctx = document.getElementById('salaryByRoleChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: roles,
+                datasets: [{
+                    data: avgSalaryByRole,
+                    backgroundColor: [
+                        '#dc3545', // Admin - Red
+                        '#ffc107', // Manager - Yellow
+                        '#28a745', // Operations - Green
+                        '#0d6efd', // Developer - Blue
+                        '#17a2b8'  // Sales Rep - Cyan
+                    ],
+                    borderWidth: 1,
+                    borderColor: '#343a40'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Average Salary by Role',
+                        color: '#e2e2e2'
+                    },
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#e2e2e2',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="project-detail-container animate__animated animate__fadeIn">
+    <!-- Project Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-project-diagram me-2"></i>{{ project.name }}
+            </h1>
+            <p class="text-muted">Project for client: {{ project.client.name }}</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group animate__animated animate__fadeInRight">
+                <a href="{% url 'projects:projects_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Projects
+                </a>
+                {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                <a href="{% url 'projects:project_update' project.id %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit Project
+                </a>
+                <a href="{% url 'projects:payment_create' %}?project={{ project.id }}" class="btn btn-accent">
+                    <i class="fas fa-money-bill-wave me-2"></i>Add Payment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Details -->
+    <div class="row">
+        <!-- Project Info Card -->
+        <div class="col-lg-6 mb-4">
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">Client</div>
+                                <div class="detail-value">{{ project.client.name }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Status</div>
+                                <div class="detail-value">
+                                    {% if project.status == 'new' %}
+                                        <span class="badge bg-info">{{ project.get_status_display }}</span>
+                                    {% elif project.status == 'in_progress' %}
+                                        <span class="badge bg-primary">{{ project.get_status_display }}</span>
+                                    {% elif project.status == 'on_hold' %}
+                                        <span class="badge bg-warning">{{ project.get_status_display }}</span>
+                                    {% elif project.status == 'completed' %}
+                                        <span class="badge bg-success">{{ project.get_status_display }}</span>
+                                    {% elif project.status == 'cancelled' %}
+                                        <span class="badge bg-danger">{{ project.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Start Date</div>
+                                <div class="detail-value">{{ project.start_date|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">End Date</div>
+                                <div class="detail-value">{% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% else %}-{% endif %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <div class="detail-label">Created On</div>
+                                <div class="detail-value">{{ project.created_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Last Updated</div>
+                                <div class="detail-value">{{ project.updated_at|date:"M d, Y" }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Estimated Hours</div>
+                                <div class="detail-value">{{ project.estimated_hours }} hours</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Total Payments</div>
+                                <div class="detail-value text-accent">${{ project.total_payments|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item mt-3">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value detail-description">{{ project.description|linebreaks }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assigned Developers Card -->
+        <div class="col-lg-6 mb-4">
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Assigned Developers</h5>
+                        <span class="badge bg-accent">{{ project.assigned_developers.count }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if project.assigned_developers.count > 0 %}
+                        <div class="developers-grid">
+                            {% for developer in project.assigned_developers.all %}
+                                <div class="developer-card">
+                                    <div class="developer-avatar">
+                                        {% if developer.profile.profile_picture %}
+                                            <img src="{{ developer.profile.profile_picture }}" alt="{{ developer.username }}">
+                                        {% else %}
+                                            <i class="fas fa-user-circle"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="developer-info">
+                                        <div class="developer-name">{{ developer.first_name }} {{ developer.last_name }}</div>
+                                        <div class="developer-username">@{{ developer.username }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state py-4">
+                            <i class="fas fa-user-slash fa-3x mb-3"></i>
+                            <h5>No developers assigned</h5>
+                            <p class="text-muted">This project doesn't have any developers assigned yet.</p>
+                            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                            <a href="{% url 'projects:project_update' project.id %}" class="btn btn-outline-light mt-2">
+                                <i class="fas fa-user-plus me-2"></i>Assign Developers
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Client Info Card -->
+            <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-3s">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-building me-2"></i>Client Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="client-info">
+                        <div class="detail-item">
+                            <div class="detail-label">Company Name</div>
+                            <div class="detail-value">{{ project.client.name }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Contact Person</div>
+                            <div class="detail-value">{{ project.client.contact_person }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">
+                                <a href="mailto:{{ project.client.email }}" class="text-accent">
+                                    {{ project.client.email }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">{{ project.client.phone }}</div>
+                        </div>
+                        {% if project.client.website %}
+                        <div class="detail-item">
+                            <div class="detail-label">Website</div>
+                            <div class="detail-value">
+                                <a href="{{ project.client.website }}" target="_blank" class="text-accent">
+                                    {{ project.client.website }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment History -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-4s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Payment History</h5>
+                {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                <a href="{% url 'projects:payment_create' %}?project={{ project.id }}" class="btn btn-sm btn-accent">
+                    <i class="fas fa-plus me-2"></i>Add Payment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Receipt #</th>
+                            <th>Description</th>
+                            <th>Created By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if payments %}
+                            {% for payment in payments %}
+                                <tr class="payment-row animate__animated animate__fadeIn">
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td class="text-accent">${{ payment.amount|floatformat:2 }}</td>
+                                    <td>
+                                        {% if payment.payment_method == 'cash' %}
+                                            <span class="badge bg-success">Cash</span>
+                                        {% elif payment.payment_method == 'bank_transfer' %}
+                                            <span class="badge bg-primary">Bank Transfer</span>
+                                        {% elif payment.payment_method == 'credit_card' %}
+                                            <span class="badge bg-info">Credit Card</span>
+                                        {% elif payment.payment_method == 'paypal' %}
+                                            <span class="badge bg-secondary">PayPal</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">{{ payment.get_payment_method_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.receipt_number|default:"-" }}</td>
+                                    <td>{{ payment.description|default:"-" }}</td>
+                                    <td>{{ payment.created_by.username|default:"-" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                                            <a href="{% url 'projects:payment_update' payment.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'projects:payment_delete' payment.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
+                                        <h5>No payments recorded</h5>
+                                        <p class="text-muted">This project doesn't have any payments recorded yet.</p>
+                                        {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                                        <a href="{% url 'projects:payment_create' %}?project={{ project.id }}" class="btn btn-accent mt-3">
+                                            <i class="fas fa-plus me-2"></i>Record Payment
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tasks Section -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-5s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Project Tasks</h5>
+                {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
+                <a href="{% url 'employees:task_create' %}?project={{ project.id }}" class="btn btn-sm btn-accent">
+                    <i class="fas fa-plus me-2"></i>Add Task
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Assigned To</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if project.tasks.all %}
+                            {% for task in project.tasks.all %}
+                                <tr class="task-row animate__animated animate__fadeIn">
+                                    <td><strong>{{ task.title }}</strong></td>
+                                    <td>{{ task.assigned_to.username }}</td>
+                                    <td>
+                                        {% if task.priority == 'low' %}
+                                            <span class="badge bg-success">{{ task.get_priority_display }}</span>
+                                        {% elif task.priority == 'medium' %}
+                                            <span class="badge bg-info">{{ task.get_priority_display }}</span>
+                                        {% elif task.priority == 'high' %}
+                                            <span class="badge bg-warning">{{ task.get_priority_display }}</span>
+                                        {% elif task.priority == 'urgent' %}
+                                            <span class="badge bg-danger">{{ task.get_priority_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if task.status == 'todo' %}
+                                            <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                                        {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-primary">{{ task.get_status_display }}</span>
+                                        {% elif task.status == 'review' %}
+                                            <span class="badge bg-warning">{{ task.get_status_display }}</span>
+                                        {% elif task.status == 'done' %}
+                                            <span class="badge bg-success">{{ task.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ task.due_date|date:"M d, Y" }}
+                                        {% if task.is_overdue %}
+                                            <span class="badge bg-danger ms-1">Overdue</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'employees:task_update' task.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
+                                            <a href="{% url 'employees:task_delete' task.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                        <h5>No tasks created</h5>
+                                        <p class="text-muted">This project doesn't have any tasks assigned yet.</p>
+                                        {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
+                                        <a href="{% url 'employees:task_create' %}?project={{ project.id }}" class="btn btn-accent mt-3">
+                                            <i class="fas fa-plus me-2"></i>Create Task
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for payment rows
+    const paymentRows = document.querySelectorAll('.payment-row');
+    paymentRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for task rows
+    const taskRows = document.querySelectorAll('.task-row');
+    taskRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for developer cards
+    const developerCards = document.querySelectorAll('.developer-card');
+    developerCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        card.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

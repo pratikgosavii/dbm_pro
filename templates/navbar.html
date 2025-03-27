@@ -1,0 +1,130 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'dashboard:index' %}">
+            <i class="fas fa-project-diagram me-2"></i>Lead Manager
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            {% if user.is_authenticated %}
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard:index' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                
+                {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_sales_rep %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="leadsDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-tag me-1"></i>Leads
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="leadsDropdown">
+                        <li><a class="dropdown-item" href="{% url 'leads:list' %}">View Leads</a></li>
+                        {% if user_profile.is_admin or user_profile.is_manager %}
+                        <li><a class="dropdown-item" href="{% url 'leads:create' %}">Create Lead</a></li>
+                        <li><a class="dropdown-item" href="{% url 'leads:import' %}">Import Leads</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                
+                {% if user_profile.is_admin or user_profile.is_operations_manager or user_profile.is_developer %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="projectsDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-tasks me-1"></i>Projects
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="projectsDropdown">
+                        <li><a class="dropdown-item" href="{% url 'projects:projects_list' %}">View Projects</a></li>
+                        {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                        <li><a class="dropdown-item" href="{% url 'projects:project_create' %}">Create Project</a></li>
+                        <li><a class="dropdown-item" href="{% url 'projects:clients_list' %}">Clients</a></li>
+                        <li><a class="dropdown-item" href="{% url 'projects:payments_list' %}">Payments</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% endif %}
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="tasksDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-clipboard-list me-1"></i>Tasks
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="tasksDropdown">
+                        <li><a class="dropdown-item" href="{% url 'employees:tasks_list' %}">View Tasks</a></li>
+                        {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
+                        <li><a class="dropdown-item" href="{% url 'employees:task_create' %}">Create Task</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                
+                {% if user_profile.is_admin or user_profile.is_manager or user_profile.is_operations_manager %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="employeesDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-users me-1"></i>Employees
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="employeesDropdown">
+                        <li><a class="dropdown-item" href="{% url 'employees:employees_list' %}">View Employees</a></li>
+                        {% if user_profile.is_admin or user_profile.is_manager %}
+                        <li><a class="dropdown-item" href="{% url 'employees:employee_create' %}">Add Employee</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item" href="{% url 'employees:attendance' %}">Attendance</a></li>
+                        {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                        <li><a class="dropdown-item" href="{% url 'employees:salary_list' %}">Salary Management</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'employees:attendance' %}">
+                        <i class="fas fa-clock me-1"></i>Attendance
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-chart-bar me-1"></i>Reports
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+                        <li><a class="dropdown-item" href="{% url 'employees:salary_report' %}">Salary Report</a></li>
+                        <li><a class="dropdown-item" href="{% url 'projects:payments_list' %}">Payment Report</a></li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle me-1"></i>{{ user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">My Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+            {% else %}
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Salary History - {{ employee.first_name }} {{ employee.last_name }} - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="salary-history-container animate__animated animate__fadeIn">
+    <!-- Salary History Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-history me-2"></i>Salary History
+            </h1>
+            <p class="text-muted">Viewing salary history for {{ employee.first_name }} {{ employee.last_name }}</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group animate__animated animate__fadeInRight">
+                <a href="{% url 'employees:salary_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Salary List
+                </a>
+                <a href="{% url 'employees:employee_detail' employee.id %}" class="btn btn-primary">
+                    <i class="fas fa-user me-2"></i>Employee Profile
+                </a>
+                <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-accent">
+                    <i class="fas fa-plus me-2"></i>Add Salary Record
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Info Card -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2 text-center">
+                    <div class="employee-avatar mb-3">
+                        {% if employee.profile.profile_picture %}
+                            <img src="{{ employee.profile.profile_picture }}" alt="{{ employee.username }}" class="img-fluid rounded-circle">
+                        {% else %}
+                            <i class="fas fa-user-circle fa-5x"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <h4 class="mb-1">{{ employee.first_name }} {{ employee.last_name }}</h4>
+                    <p class="text-muted mb-3">
+                        {% with role=employee.profile.role %}
+                            {% if role == 'admin' %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% elif role == 'manager' %}
+                                <span class="badge bg-warning">Manager</span>
+                            {% elif role == 'operations_manager' %}
+                                <span class="badge bg-success">Operations Manager</span>
+                            {% elif role == 'sales_rep' %}
+                                <span class="badge bg-info">Sales Rep</span>
+                            {% elif role == 'developer' %}
+                                <span class="badge bg-primary">Developer</span>
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    <div class="employee-details">
+                        <div class="detail-item">
+                            <i class="fas fa-envelope me-2"></i>{{ employee.email }}
+                        </div>
+                        {% if employee.profile.phone %}
+                        <div class="detail-item">
+                            <i class="fas fa-phone me-2"></i>{{ employee.profile.phone }}
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt me-2"></i>Joined {{ employee.profile.date_joined|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="current-salary-box text-center p-3">
+                        <h6 class="text-muted mb-2">Current Salary</h6>
+                        {% if salary_history.0 %}
+                            <h2 class="text-accent mb-0">${{ salary_history.0.amount|floatformat:2 }}</h2>
+                            <p class="text-muted">Effective since {{ salary_history.0.effective_date|date:"M d, Y" }}</p>
+                        {% else %}
+                            <h2 class="text-muted mb-0">No salary record</h2>
+                            <p class="text-muted">No salary information available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary History Timeline -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Salary History Timeline</h5>
+        </div>
+        <div class="card-body">
+            {% if salary_history %}
+                <div class="salary-timeline">
+                    {% for salary in salary_history %}
+                        <div class="timeline-item animate__animated animate__fadeInLeft" style="animation-delay: {{ forloop.counter0|add:3 }}00ms">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content card card-dark">
+                                <div class="timeline-date">
+                                    <span>{{ salary.effective_date|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="timeline-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="salary-amount">
+                                            <h4 class="text-accent">${{ salary.amount|floatformat:2 }}</h4>
+                                        </div>
+                                        {% if forloop.counter0 > 0 and salary_history|length > 1 %}
+                                            {% with previous=salary_history|slice:forloop.counter0|first %}
+                                                {% if previous.amount > salary.amount %}
+                                                    <div class="salary-change text-danger">
+                                                        <i class="fas fa-arrow-down me-1"></i>
+                                                        ${{ previous.amount|sub:salary.amount|floatformat:2 }}
+                                                    </div>
+                                                {% elif previous.amount < salary.amount %}
+                                                    <div class="salary-change text-success">
+                                                        <i class="fas fa-arrow-up me-1"></i>
+                                                        ${{ salary.amount|sub:previous.amount|floatformat:2 }}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="salary-change text-muted">
+                                                        <i class="fas fa-equals me-1"></i>
+                                                        No change
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </div>
+                                    {% if salary.notes %}
+                                        <div class="salary-notes mt-2">
+                                            <h6>Notes:</h6>
+                                            <p>{{ salary.notes }}</p>
+                                        </div>
+                                    {% endif %}
+                                    <div class="salary-meta mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Record created on {{ salary.created_at|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state py-5 text-center">
+                    <i class="fas fa-history fa-4x mb-3 text-muted"></i>
+                    <h4>No Salary History</h4>
+                    <p class="text-muted">This employee doesn't have any salary records yet.</p>
+                    <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-accent mt-3">
+                        <i class="fas fa-plus me-2"></i>Add First Salary Record
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation when hovering over timeline items
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.querySelector('.timeline-content').classList.add('animate__pulse');
+        });
+        item.addEventListener('mouseleave', function() {
+            this.querySelector('.timeline-content').classList.remove('animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

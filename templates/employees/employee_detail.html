@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.first_name }} {{ employee.last_name }} - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="employee-detail-container animate__animated animate__fadeIn">
+    <!-- Employee Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-user me-2"></i>Employee Profile
+            </h1>
+            <p class="text-muted">View and manage employee information</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group animate__animated animate__fadeInRight">
+                <a href="{% url 'employees:employees_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Employees
+                </a>
+                {% if user_profile.is_admin or user_profile.is_manager %}
+                <a href="{% url 'employees:task_create' %}?employee={{ employee.id }}" class="btn btn-primary">
+                    <i class="fas fa-tasks me-2"></i>Assign Task
+                </a>
+                {% endif %}
+                {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-accent">
+                    <i class="fas fa-dollar-sign me-2"></i>Manage Salary
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Details -->
+    <div class="row">
+        <!-- Employee Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="card-body text-center py-5">
+                    <div class="profile-section">
+                        {% if employee.profile.profile_picture %}
+                            <img src="{{ employee.profile.profile_picture }}" alt="{{ employee.username }}" class="rounded-circle profile-avatar mb-3">
+                        {% else %}
+                            <div class="profile-avatar-placeholder mb-3">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <h3 class="employee-name mb-1">{{ employee.first_name }} {{ employee.last_name }}</h3>
+                        <div class="employee-role mb-3">
+                            {% if employee_profile.role == 'admin' %}
+                                <span class="badge bg-danger">{{ employee_profile.get_role_display }}</span>
+                            {% elif employee_profile.role == 'manager' %}
+                                <span class="badge bg-warning">{{ employee_profile.get_role_display }}</span>
+                            {% elif employee_profile.role == 'operations_manager' %}
+                                <span class="badge bg-success">{{ employee_profile.get_role_display }}</span>
+                            {% elif employee_profile.role == 'sales_rep' %}
+                                <span class="badge bg-info">{{ employee_profile.get_role_display }}</span>
+                            {% elif employee_profile.role == 'developer' %}
+                                <span class="badge bg-primary">{{ employee_profile.get_role_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="employee-contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope me-2"></i>
+                            <span>{{ employee.email }}</span>
+                        </div>
+                        {% if employee_profile.phone %}
+                        <div class="contact-item">
+                            <i class="fas fa-phone me-2"></i>
+                            <span>{{ employee_profile.phone }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="contact-item">
+                            <i class="fas fa-user-tag me-2"></i>
+                            <span>@{{ employee.username }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            <span>Joined {{ employee_profile.date_joined|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Salary Information Card (Admin/Operations Manager Only) -->
+            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+            <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Salary Information</h5>
+                        <a href="{% url 'employees:salary_history' employee.id %}" class="btn btn-sm btn-accent">
+                            View History
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if current_salary %}
+                        <div class="current-salary text-center mb-3">
+                            <h2 class="text-accent">${{ current_salary.amount|floatformat:2 }}</h2>
+                            <p class="text-muted">Effective since {{ current_salary.effective_date|date:"M d, Y" }}</p>
+                        </div>
+                        
+                        {% if current_salary.notes %}
+                        <div class="salary-notes mt-3">
+                            <h6>Notes:</h6>
+                            <p>{{ current_salary.notes }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid mt-3">
+                            <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-outline-light">
+                                <i class="fas fa-edit me-2"></i>Update Salary
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="empty-state py-4 text-center">
+                            <i class="fas fa-dollar-sign fa-3x mb-3"></i>
+                            <h5>No salary information</h5>
+                            <p class="text-muted">This employee doesn't have any salary records yet.</p>
+                            <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-outline-light mt-2">
+                                <i class="fas fa-plus me-2"></i>Add Salary
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tasks and Activity Cards -->
+        <div class="col-lg-8">
+            <!-- Recent Tasks Card -->
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Tasks</h5>
+                        <a href="{% url 'employees:tasks_list' %}" class="btn btn-sm btn-outline-light">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover m-0">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Project</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tasks %}
+                                    {% for task in tasks %}
+                                        <tr class="task-row animate__animated animate__fadeIn">
+                                            <td><strong>{{ task.title }}</strong></td>
+                                            <td>{% if task.project %}{{ task.project.name }}{% else %}-{% endif %}</td>
+                                            <td>
+                                                {% if task.priority == 'low' %}
+                                                    <span class="badge bg-success">{{ task.get_priority_display }}</span>
+                                                {% elif task.priority == 'medium' %}
+                                                    <span class="badge bg-info">{{ task.get_priority_display }}</span>
+                                                {% elif task.priority == 'high' %}
+                                                    <span class="badge bg-warning">{{ task.get_priority_display }}</span>
+                                                {% elif task.priority == 'urgent' %}
+                                                    <span class="badge bg-danger">{{ task.get_priority_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if task.status == 'todo' %}
+                                                    <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'review' %}
+                                                    <span class="badge bg-warning">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'done' %}
+                                                    <span class="badge bg-success">{{ task.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ task.due_date|date:"M d, Y" }}
+                                                {% if task.is_overdue %}
+                                                    <span class="badge bg-danger ms-1">Overdue</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                                <h5>No tasks assigned</h5>
+                                                <p class="text-muted">This employee doesn't have any tasks assigned yet.</p>
+                                                {% if user_profile.is_admin or user_profile.is_manager %}
+                                                <a href="{% url 'employees:task_create' %}?employee={{ employee.id }}" class="btn btn-outline-light mt-2">
+                                                    <i class="fas fa-plus me-2"></i>Assign Task
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Attendance Card -->
+            <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-3s">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Attendance</h5>
+                        <a href="{% url 'employees:attendance' %}" class="btn btn-sm btn-outline-light">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover m-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Hours Worked</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if attendance_records %}
+                                    {% for record in attendance_records %}
+                                        <tr class="attendance-row animate__animated animate__fadeIn">
+                                            <td>{{ record.date|date:"M d, Y" }}</td>
+                                            <td>{{ record.time_in|time:"H:i" }}</td>
+                                            <td>{% if record.time_out %}{{ record.time_out|time:"H:i" }}{% else %}-{% endif %}</td>
+                                            <td>
+                                                {% if record.hours_worked %}
+                                                    {{ record.hours_worked|floatformat:2 }} hrs
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if record.is_checked_out %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Ongoing</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-calendar-day fa-3x mb-3"></i>
+                                                <h5>No attendance records</h5>
+                                                <p class="text-muted">This employee doesn't have any recent attendance records.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projects Card (for Developers) -->
+            {% if employee_profile.role == 'developer' %}
+            <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-4s">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Assigned Projects</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover m-0">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Client</th>
+                                    <th>Status</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if employee.assigned_projects.all %}
+                                    {% for project in employee.assigned_projects.all %}
+                                        <tr class="project-row animate__animated animate__fadeIn">
+                                            <td>
+                                                <a href="{% url 'projects:project_detail' project.id %}" class="project-link">
+                                                    <strong>{{ project.name }}</strong>
+                                                </a>
+                                            </td>
+                                            <td>{{ project.client.name }}</td>
+                                            <td>
+                                                {% if project.status == 'new' %}
+                                                    <span class="badge bg-info">{{ project.get_status_display }}</span>
+                                                {% elif project.status == 'in_progress' %}
+                                                    <span class="badge bg-primary">{{ project.get_status_display }}</span>
+                                                {% elif project.status == 'on_hold' %}
+                                                    <span class="badge bg-warning">{{ project.get_status_display }}</span>
+                                                {% elif project.status == 'completed' %}
+                                                    <span class="badge bg-success">{{ project.get_status_display }}</span>
+                                                {% elif project.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">{{ project.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ project.start_date|date:"M d, Y" }}</td>
+                                            <td>{% if project.end_date %}{{ project.end_date|date:"M d, Y" }}{% else %}-{% endif %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                                <h5>No projects assigned</h5>
+                                                <p class="text-muted">This developer doesn't have any projects assigned yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Leads Card (for Sales Reps) -->
+            {% if employee_profile.role == 'sales_rep' %}
+            <div class="card card-dark mt-4 animate__animated animate__fadeInUp animate__delay-4s">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-tag me-2"></i>Assigned Leads</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover m-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Company</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if employee.assigned_leads.all %}
+                                    {% for lead in employee.assigned_leads.all %}
+                                        <tr class="lead-row animate__animated animate__fadeIn">
+                                            <td><strong>{{ lead.first_name }} {{ lead.last_name }}</strong></td>
+                                            <td>{{ lead.company|default:"-" }}</td>
+                                            <td>{{ lead.email }}</td>
+                                            <td>
+                                                {% if lead.status == 'new' %}
+                                                    <span class="badge bg-info">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'contacted' %}
+                                                    <span class="badge bg-primary">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'qualified' %}
+                                                    <span class="badge bg-warning">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'proposal' %}
+                                                    <span class="badge bg-secondary">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'negotiation' %}
+                                                    <span class="badge bg-purple">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'won' %}
+                                                    <span class="badge bg-success">{{ lead.get_status_display }}</span>
+                                                {% elif lead.status == 'lost' %}
+                                                    <span class="badge bg-danger">{{ lead.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ lead.created_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <div class="empty-state">
+                                                <i class="fas fa-user-tag fa-3x mb-3"></i>
+                                                <h5>No leads assigned</h5>
+                                                <p class="text-muted">This sales representative doesn't have any leads assigned yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for task rows
+    const taskRows = document.querySelectorAll('.task-row');
+    taskRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for attendance rows
+    const attendanceRows = document.querySelectorAll('.attendance-row');
+    attendanceRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for project rows
+    const projectRows = document.querySelectorAll('.project-row');
+    projectRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+    
+    // Add hover animation for lead rows
+    const leadRows = document.querySelectorAll('.lead-row');
+    leadRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

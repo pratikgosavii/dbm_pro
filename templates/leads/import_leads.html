@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Leads - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="import-container animate__animated animate__fadeIn">
+    <!-- Import Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-file-import me-2"></i>Import Leads
+            </h1>
+            <p class="text-muted">Import leads from Excel or Facebook Ads</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="{% url 'leads:list' %}" class="btn btn-outline-secondary animate__animated animate__fadeInRight">
+                <i class="fas fa-arrow-left me-2"></i>Back to Leads
+            </a>
+        </div>
+    </div>
+
+    <!-- Import Options -->
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Import Options
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Select Import Source</label>
+                            
+                            <div class="import-options">
+                                <div class="form-check import-option">
+                                    <input class="form-check-input" type="radio" name="import_type" id="import_excel" value="excel" 
+                                           {% if form.import_type.value == 'excel' %}checked{% endif %}>
+                                    <label class="form-check-label" for="import_excel">
+                                        <div class="import-option-icon">
+                                            <i class="fas fa-file-excel"></i>
+                                        </div>
+                                        <div class="import-option-text">
+                                            <h6>Import from Excel</h6>
+                                            <p class="text-muted mb-0">Upload an Excel file with lead data</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check import-option">
+                                    <input class="form-check-input" type="radio" name="import_type" id="import_facebook" value="facebook"
+                                           {% if form.import_type.value == 'facebook' %}checked{% endif %}>
+                                    <label class="form-check-label" for="import_facebook">
+                                        <div class="import-option-icon">
+                                            <i class="fab fa-facebook"></i>
+                                        </div>
+                                        <div class="import-option-text">
+                                            <h6>Import from Facebook Ads</h6>
+                                            <p class="text-muted mb-0">Fetch leads from connected Facebook Ads account</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="excel-upload-section" class="mb-4 {% if form.import_type.value != 'excel' %}d-none{% endif %}">
+                            <label for="{{ form.excel_file.id_for_label }}" class="form-label">Excel File</label>
+                            <div class="input-group">
+                                {{ form.excel_file }}
+                                <span class="input-group-text"><i class="fas fa-file-excel"></i></span>
+                            </div>
+                            {% if form.excel_file.errors %}
+                                <div class="text-danger mt-1">
+                                    {{ form.excel_file.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text mt-2">
+                                The Excel file should contain columns for first_name, last_name, and email (required), 
+                                plus optional columns for phone, company, job_title, and notes.
+                            </div>
+                        </div>
+                        
+                        <div id="facebook-settings-section" class="mb-4 {% if form.import_type.value != 'facebook' %}d-none{% endif %}">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Leads will be imported from your connected Facebook Ads account. Make sure your API credentials are configured.
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'leads:list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-accent animate__animated animate__pulse">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Import Leads
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-5">
+            <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Import Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">Excel Import Guidelines</h6>
+                    <ul class="guidelines-list">
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            File must be in .xlsx format
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Required columns: first_name, last_name, email
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Optional columns: phone, company, job_title, notes
+                        </li>
+                        <li>
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            Existing leads (matching emails) will be updated
+                        </li>
+                        <li>
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            Maximum file size: 5MB
+                        </li>
+                    </ul>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">Facebook Import Guidelines</h6>
+                    <ul class="guidelines-list">
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Imports leads from Facebook Lead Ads
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Fetches leads from the last 7 days
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Duplicate leads are automatically skipped
+                        </li>
+                        <li>
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            Requires valid Facebook API credentials
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle display of import sections based on selected type
+    const importTypeRadios = document.querySelectorAll('input[name="import_type"]');
+    const excelSection = document.getElementById('excel-upload-section');
+    const facebookSection = document.getElementById('facebook-settings-section');
+    
+    importTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'excel') {
+                excelSection.classList.remove('d-none');
+                facebookSection.classList.add('d-none');
+            } else if (this.value === 'facebook') {
+                excelSection.classList.add('d-none');
+                facebookSection.classList.remove('d-none');
+            }
+        });
+    });
+    
+    // Add animation when focusing on form fields
+    const formFields = document.querySelectorAll('.form-control');
+    formFields.forEach(field => {
+        field.addEventListener('focus', function() {
+            this.classList.add('animate__animated', 'animate__pulse');
+        });
+        field.addEventListener('blur', function() {
+            this.classList.remove('animate__animated', 'animate__pulse');
+        });
+    });
+    
+    // Animate import options on hover
+    const importOptions = document.querySelectorAll('.import-option');
+    importOptions.forEach(option => {
+        option.addEventListener('mouseenter', function() {
+            this.classList.add('animate__animated', 'animate__pulse');
+        });
+        option.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__animated', 'animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}

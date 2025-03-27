@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Employees - Lead Management System{% endblock %}
+
+{% block content %}
+<div class="employees-container animate__animated animate__fadeIn">
+    <!-- Employees Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="page-title">
+                <i class="fas fa-users me-2"></i>Employees
+            </h1>
+            <p class="text-muted">Manage employee information and assignments</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            {% if user_profile.is_admin or user_profile.is_manager %}
+            <div class="animate__animated animate__fadeInRight">
+                <a href="{% url 'employees:employee_create' %}" class="btn btn-accent">
+                    <i class="fas fa-user-plus me-2"></i>Add Employee
+                </a>
+                <a href="{% url 'employees:salary_list' %}" class="btn btn-primary">
+                    <i class="fas fa-dollar-sign me-2"></i>Manage Salaries
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card card-dark mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'employees:employees_list' %}">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label for="{{ filter_form.search.id_for_label }}" class="form-label">Search</label>
+                        {{ filter_form.search }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="{{ filter_form.role.id_for_label }}" class="form-label">Role</label>
+                        {{ filter_form.role }}
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Employees Table -->
+    <div class="card card-dark animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Employees List
+                </h5>
+                <span class="badge bg-accent">{{ employees.paginator.count }} Employees</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Phone</th>
+                            <th>Date Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if employees %}
+                            {% for employee in employees %}
+                                <tr class="employee-row animate__animated animate__fadeIn">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="employee-avatar me-2">
+                                                {% if employee.profile.profile_picture %}
+                                                    <img src="{{ employee.profile.profile_picture }}" alt="{{ employee.username }}">
+                                                {% else %}
+                                                    <i class="fas fa-user-circle"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <strong>{{ employee.first_name }} {{ employee.last_name }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ employee.username }}</td>
+                                    <td>{{ employee.email }}</td>
+                                    <td>
+                                        {% if employee.profile.role == 'admin' %}
+                                            <span class="badge bg-danger">{{ employee.profile.get_role_display }}</span>
+                                        {% elif employee.profile.role == 'manager' %}
+                                            <span class="badge bg-warning">{{ employee.profile.get_role_display }}</span>
+                                        {% elif employee.profile.role == 'operations_manager' %}
+                                            <span class="badge bg-success">{{ employee.profile.get_role_display }}</span>
+                                        {% elif employee.profile.role == 'sales_rep' %}
+                                            <span class="badge bg-info">{{ employee.profile.get_role_display }}</span>
+                                        {% elif employee.profile.role == 'developer' %}
+                                            <span class="badge bg-primary">{{ employee.profile.get_role_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ employee.profile.phone|default:"-" }}</td>
+                                    <td>{{ employee.profile.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'employees:employee_detail' employee.id %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user_profile.is_admin or user_profile.is_manager %}
+                                            <a href="{% url 'employees:task_create' %}?employee={{ employee.id }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-tasks"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if user_profile.is_admin or user_profile.is_operations_manager %}
+                                            <a href="{% url 'employees:salary_create' %}?employee={{ employee.id }}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-users fa-3x mb-3"></i>
+                                        <h5>No employees found</h5>
+                                        <p class="text-muted">Try adjusting your search or filter criteria</p>
+                                        {% if user_profile.is_admin or user_profile.is_manager %}
+                                        <a href="{% url 'employees:employee_create' %}" class="btn btn-accent mt-3">
+                                            <i class="fas fa-user-plus me-2"></i>Add Employee
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            {% if employees.paginator.num_pages > 1 %}
+            <nav aria-label="Employees pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if employees.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ employees.previous_page_number }}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ employees.number }} of {{ employees.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if employees.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ employees.next_page_number }}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ employees.paginator.num_pages }}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover animation for employee rows
+    const employeeRows = document.querySelectorAll('.employee-row');
+    employeeRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('animate__pulse');
+        });
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__pulse');
+        });
+    });
+});
+</script>
+{% endblock %}
