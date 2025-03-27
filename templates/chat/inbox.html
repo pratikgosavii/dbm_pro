@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chat Inbox{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Conversations</h5>
+                    <div class="d-flex">
+                        <a href="{% url 'chat:new_message' %}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-comment"></i> New Message
+                        </a>
+                        <a href="{% url 'chat:create_group' %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-users"></i> New Group
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs" id="conversationTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct" type="button" role="tab" aria-controls="direct" aria-selected="true">
+                                <i class="fas fa-user me-1"></i> Direct
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">
+                                <i class="fas fa-users me-1"></i> Groups
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="conversationTabsContent">
+                        <div class="tab-pane fade show active" id="direct" role="tabpanel" aria-labelledby="direct-tab">
+                            {% if recent_conversations %}
+                                <div class="list-group list-group-flush">
+                                    {% for conversation in recent_conversations %}
+                                        <a href="{% url 'chat:direct_message' user_id=conversation.user.id %}" 
+                                           class="list-group-item list-group-item-action conversation-item d-flex align-items-center {% if conversation.unread_count > 0 %}unread{% endif %}">
+                                            <div class="avatar-circle me-3">
+                                                {% if conversation.user.userprofile.profile_picture %}
+                                                    <img src="{{ conversation.user.userprofile.profile_picture }}" alt="{{ conversation.user.get_full_name }}" class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <span class="avatar-initials">{{ conversation.user.first_name|first }}{{ conversation.user.last_name|first }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between">
+                                                    <h6 class="mb-0">{{ conversation.user.get_full_name|default:conversation.user.username }}</h6>
+                                                    <small class="text-muted">{{ conversation.last_message.timestamp|date:"H:i" }}</small>
+                                                </div>
+                                                <p class="text-truncate mb-0 small">
+                                                    {% if conversation.last_message.sender == request.user %}
+                                                        <span class="text-muted"><i class="fas fa-reply fa-flip-horizontal fa-xs me-1"></i>You: </span>
+                                                    {% endif %}
+                                                    {{ conversation.last_message.content|truncatechars:30 }}
+                                                </p>
+                                                {% if conversation.unread_count > 0 %}
+                                                    <span class="badge bg-primary rounded-pill">{{ conversation.unread_count }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center p-4">
+                                    <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                    <p>No conversations yet</p>
+                                    <a href="{% url 'chat:new_message' %}" class="btn btn-sm btn-primary">
+                                        Start a conversation
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                            {% if groups %}
+                                <div class="list-group list-group-flush">
+                                    {% for group in groups %}
+                                        <a href="{% url 'chat:group_chat' group_id=group.id %}" 
+                                           class="list-group-item list-group-item-action conversation-item d-flex align-items-center {% if group.unread_count > 0 %}unread{% endif %}">
+                                            <div class="avatar-circle me-3 group-avatar">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between">
+                                                    <h6 class="mb-0">{{ group.name }}</h6>
+                                                    {% if group.last_message %}
+                                                        <small class="text-muted">{{ group.last_message.timestamp|date:"H:i" }}</small>
+                                                    {% endif %}
+                                                </div>
+                                                {% if group.last_message %}
+                                                    <p class="text-truncate mb-0 small">
+                                                        <span class="text-muted">{{ group.last_message.sender.get_full_name|default:group.last_message.sender.username }}: </span>
+                                                        {{ group.last_message.content|truncatechars:30 }}
+                                                    </p>
+                                                {% else %}
+                                                    <p class="text-truncate mb-0 small text-muted">No messages yet</p>
+                                                {% endif %}
+                                                {% if group.unread_count > 0 %}
+                                                    <span class="badge bg-primary rounded-pill">{{ group.unread_count }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center p-4">
+                                    <i class="fas fa-users fa-3x mb-3 text-muted"></i>
+                                    <p>No groups yet</p>
+                                    <a href="{% url 'chat:create_group' %}" class="btn btn-sm btn-success">
+                                        Create a group
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Welcome to Chat</h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-comments fa-4x mb-4 text-primary"></i>
+                    <h4>Start a conversation</h4>
+                    <p class="text-muted">Select a conversation from the list or start a new message</p>
+                    <div class="mt-4">
+                        <a href="{% url 'chat:new_message' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-comment"></i> New Message
+                        </a>
+                        <a href="{% url 'chat:create_group' %}" class="btn btn-success">
+                            <i class="fas fa-users"></i> Create Group
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animations to conversation items
+        const conversationItems = document.querySelectorAll('.conversation-item');
+        conversationItems.forEach((item, index) => {
+            item.style.opacity = 0;
+            item.style.transform = 'translateX(-20px)';
+            item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            
+            setTimeout(() => {
+                item.style.opacity = 1;
+                item.style.transform = 'translateX(0)';
+            }, 50 * index);
+        });
+        
+        // Add slide animation to welcome card
+        const welcomeCard = document.querySelector('.col-md-8 .card');
+        welcomeCard.style.opacity = 0;
+        welcomeCard.style.transform = 'translateY(20px)';
+        welcomeCard.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        
+        setTimeout(() => {
+            welcomeCard.style.opacity = 1;
+            welcomeCard.style.transform = 'translateY(0)';
+        }, 300);
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .conversation-item {
+        transition: all 0.2s ease;
+    }
+    
+    .conversation-item:hover {
+        background-color: rgba(111, 66, 193, 0.05);
+    }
+    
+    .conversation-item.unread {
+        background-color: rgba(111, 66, 193, 0.1);
+    }
+    
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #6f42c1;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    
+    .avatar-initials {
+        font-size: 16px;
+    }
+    
+    .group-avatar {
+        background-color: #20c997;
+    }
+    
+    .badge {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #6f42c1;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #6f42c1;
+        border-color: #dee2e6 #dee2e6 #fff;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

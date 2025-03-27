@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ group.name }} - Group Chat{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'chat:inbox' %}" class="btn btn-sm btn-outline-secondary me-3">
+                            <i class="fas fa-arrow-left"></i> Back to Inbox
+                        </a>
+                        <h4 class="mb-0">{{ group.name }}</h4>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="groupActionsDropdown">
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#membersModal">
+                                    <i class="fas fa-users"></i> View Members ({{ group.members.count }})
+                                </a>
+                            </li>
+                            {% if group.created_by == request.user %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'chat:edit_group' group_id=group.id %}">
+                                        <i class="fas fa-edit"></i> Edit Group
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'chat:delete_group' group_id=group.id %}">
+                                        <i class="fas fa-trash"></i> Delete Group
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chat-container mb-4" style="height: 400px; overflow-y: auto; display: flex; flex-direction: column;">
+                        {% if group_messages %}
+                            {% for message in group_messages %}
+                                <div class="message-container {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %} mb-3">
+                                    {% if message.sender != request.user %}
+                                        <div class="avatar-circle message-avatar me-2">
+                                            {% if message.sender.userprofile.profile_picture %}
+                                                <img src="{{ message.sender.userprofile.profile_picture }}" alt="{{ message.sender.get_full_name }}" class="rounded-circle" width="32" height="32">
+                                            {% else %}
+                                                <span class="avatar-initials small">{{ message.sender.first_name|first }}{{ message.sender.last_name|first }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="message-bubble">
+                                        {% if message.sender != request.user %}
+                                            <div class="message-sender">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+                                        {% endif %}
+                                        <div class="message-content">{{ message.content|linebreaksbr }}</div>
+                                        {% if message.image %}
+                                            <div class="message-attachment mt-2">
+                                                <img src="{{ message.image.url }}" class="img-fluid rounded" style="max-width: 200px;">
+                                            </div>
+                                        {% endif %}
+                                        {% if message.document %}
+                                            <div class="message-attachment mt-2">
+                                                <a href="{{ message.document.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="fas fa-file"></i> View Document
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        <div class="message-meta text-muted small">
+                                            <span>{{ message.timestamp|date:"M d, Y H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-messages text-center align-self-center">
+                                <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                                <p>No messages yet in this group. Be the first to send a message!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" class="message-form">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    {{ form.content }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.image.id_for_label }}" class="form-label">Add Image</label>
+                                    {{ form.image }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.document.id_for_label }}" class="form-label">Add Document</label>
+                                    {{ form.document }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Group Members Modal -->
+<div class="modal fade" id="membersModal" tabindex="-1" aria-labelledby="membersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="membersModalLabel">{{ group.name }} - Members</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {% for member in group.members.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3">
+                                    {% if member.userprofile.profile_picture %}
+                                        <img src="{{ member.userprofile.profile_picture }}" alt="{{ member.get_full_name }}" class="rounded-circle" width="40" height="40">
+                                    {% else %}
+                                        <span class="avatar-initials">{{ member.first_name|first }}{{ member.last_name|first }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ member.get_full_name|default:member.username }}</h6>
+                                    <small class="text-muted">
+                                        {% if member.userprofile.role %}
+                                            {{ member.userprofile.get_role_display }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            {% if member == group.created_by %}
+                                <span class="badge bg-primary">Creator</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scroll to bottom of chat container
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // Add animations for messages
+        const messages = document.querySelectorAll('.message-container');
+        messages.forEach((msg, index) => {
+            msg.style.opacity = 0;
+            msg.style.transform = 'translateY(20px)';
+            msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            
+            setTimeout(() => {
+                msg.style.opacity = 1;
+                msg.style.transform = 'translateY(0)';
+            }, 50 * index);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .message-container {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .message-sent {
+        justify-content: flex-end;
+    }
+    
+    .message-received {
+        justify-content: flex-start;
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .message-sent .message-bubble {
+        background-color: #6f42c1;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-received .message-bubble {
+        background-color: #f8f9fa;
+        color: #212529;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-meta {
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+    
+    .message-sent .message-meta {
+        text-align: right;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .message-sender {
+        font-weight: bold;
+        margin-bottom: 3px;
+        font-size: 0.9rem;
+    }
+    
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #6f42c1;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        overflow: hidden;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        align-self: flex-start;
+        margin-top: 5px;
+    }
+    
+    .avatar-initials {
+        font-size: 16px;
+    }
+    
+    .avatar-initials.small {
+        font-size: 12px;
+    }
+</style>
+{% endblock %}

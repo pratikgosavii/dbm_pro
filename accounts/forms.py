@@ -5,10 +5,10 @@ from .models import UserProfile, EmployeeCategory
 
 class LoginForm(forms.Form):
     username = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple', 'placeholder': 'Username'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple', 'placeholder': 'Username'})
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control bg-dark text-light border-purple', 'placeholder': 'Password'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control border-purple', 'placeholder': 'Password'})
     )
 
 class EmployeeCategoryForm(forms.ModelForm):
@@ -16,8 +16,8 @@ class EmployeeCategoryForm(forms.ModelForm):
         model = EmployeeCategory
         fields = ['name', 'description', 'is_active']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'}),
-            'description': forms.Textarea(attrs={'class': 'form-control bg-dark text-light border-purple', 'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-control border-purple'}),
+            'description': forms.Textarea(attrs={'class': 'form-control border-purple', 'rows': 3}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         
@@ -26,40 +26,40 @@ class EmployeeCreationForm(UserCreationForm):
     first_name = forms.CharField(
         max_length=30, 
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple'})
     )
     last_name = forms.CharField(
         max_length=30, 
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple'})
     )
     email = forms.EmailField(
         max_length=254, 
         required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.EmailInput(attrs={'class': 'form-control border-purple'})
     )
     role = forms.ChoiceField(
         choices=UserProfile.ROLE_CHOICES,
         required=True,
-        widget=forms.Select(attrs={'class': 'form-select bg-dark text-light border-purple'})
+        widget=forms.Select(attrs={'class': 'form-select border-purple'})
     )
     category = forms.ModelChoiceField(
         queryset=EmployeeCategory.objects.filter(is_active=True),
         required=False,
-        widget=forms.Select(attrs={'class': 'form-select bg-dark text-light border-purple'})
+        widget=forms.Select(attrs={'class': 'form-select border-purple'})
     )
     phone = forms.CharField(
         max_length=15, 
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple'})
     )
     address = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control bg-dark text-light border-purple', 'rows': 3})
+        widget=forms.Textarea(attrs={'class': 'form-control border-purple', 'rows': 3})
     )
     profile_picture = forms.URLField(
         required=False,
-        widget=forms.URLInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.URLInput(attrs={'class': 'form-control border-purple'})
     )
     
     class Meta:
@@ -70,40 +70,40 @@ class EmployeeCreationForm(UserCreationForm):
             'address', 'profile_picture'
         ]
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'}),
+            'username': forms.TextInput(attrs={'class': 'form-control border-purple'}),
         }
     
     def __init__(self, *args, **kwargs):
         super(EmployeeCreationForm, self).__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({'class': 'form-control bg-dark text-light border-purple'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control bg-dark text-light border-purple'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control border-purple'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control border-purple'})
 
 class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(
         max_length=30, 
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple'})
     )
     last_name = forms.CharField(
         max_length=30, 
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.TextInput(attrs={'class': 'form-control border-purple'})
     )
     email = forms.EmailField(
         max_length=254, 
         required=False,
-        widget=forms.EmailInput(attrs={'class': 'form-control bg-dark text-light border-purple'})
+        widget=forms.EmailInput(attrs={'class': 'form-control border-purple'})
     )
     
     class Meta:
         model = UserProfile
         fields = ('role', 'category', 'phone', 'address', 'profile_picture')
         widgets = {
-            'role': forms.Select(attrs={'class': 'form-select bg-dark text-light border-purple'}),
-            'category': forms.Select(attrs={'class': 'form-select bg-dark text-light border-purple'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control bg-dark text-light border-purple'}),
-            'address': forms.Textarea(attrs={'class': 'form-control bg-dark text-light border-purple', 'rows': 3}),
-            'profile_picture': forms.URLInput(attrs={'class': 'form-control bg-dark text-light border-purple'}),
+            'role': forms.Select(attrs={'class': 'form-select border-purple'}),
+            'category': forms.Select(attrs={'class': 'form-select border-purple'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control border-purple'}),
+            'address': forms.Textarea(attrs={'class': 'form-control border-purple', 'rows': 3}),
+            'profile_picture': forms.URLInput(attrs={'class': 'form-control border-purple'}),
         }
     
     def __init__(self, *args, **kwargs):

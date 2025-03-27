@@ -73,6 +73,9 @@ def attendance_log(request):
     # Show all attendance for admins/managers, but only own attendance for others
     user_profile = request.user.userprofile
     
+    # Initialize employee_id variable
+    employee_id = None
+    
     if user_profile.is_admin or user_profile.is_ops_manager:
         attendances = Attendance.objects.all()
         
