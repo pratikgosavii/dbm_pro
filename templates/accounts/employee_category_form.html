@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_create %}Create{% else %}Edit{% endif %} Employee Category | Lead Management System{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-tags me-2 text-purple"></i>
+            {% if is_create %}Create New Category{% else %}Edit Category{% endif %}
+        </h2>
+        <a href="{% url 'accounts:employee_category_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Categories
+        </a>
+    </div>
+    
+    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">{% if is_create %}Category Information{% else %}Update Category: {{ form.instance.name }}{% endif %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label text-light">Name <span class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger">
+                            {% for error in form.name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label text-light">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-danger">
+                            {% for error in form.description.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="form-check-label text-light">Active</label>
+                        {% if form.is_active.errors %}
+                        <div class="text-danger">
+                            {% for error in form.is_active.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <hr class="border-purple">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'accounts:employee_category_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-purple">
+                            <i class="fas fa-save me-2"></i>{% if is_create %}Create Category{% else %}Update Category{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_create %}Create{% else %}Edit{% endif %} Employee | Lead Management System{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">
+            <i class="fas fa-user-plus me-2 text-purple"></i>
+            {% if is_create %}Create New Employee{% else %}Edit Employee{% endif %}
+        </h2>
+        <a href="{% url 'employees:employee_list' %}" class="btn btn-outline-purple animate__animated animate__fadeIn">
+            <i class="fas fa-arrow-left me-2"></i>Back to Employees
+        </a>
+    </div>
+    
+    <div class="card bg-dark border-purple animate__animated animate__fadeIn">
+        <div class="card-header bg-purple text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">{% if is_create %}Employee Information{% else %}Update Employee: {{ form.instance.username }}{% endif %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                
+                <div class="col-md-6">
+                    <h5 class="text-purple mb-3">Account Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label text-light">Username <span class="text-danger">*</span></label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-danger">
+                            {% for error in form.username.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label text-light">Password <span class="text-danger">*</span></label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password1.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            <small>{{ form.password1.help_text|safe }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label text-light">Confirm Password <span class="text-danger">*</span></label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password2.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="text-purple mb-3">Personal Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label text-light">First Name <span class="text-danger">*</span></label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="text-danger">
+                            {% for error in form.first_name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label text-light">Last Name <span class="text-danger">*</span></label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="text-danger">
+                            {% for error in form.last_name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label text-light">Email <span class="text-danger">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <hr class="border-purple">
+                    <h5 class="text-purple mb-3">Role & Contact Information</h5>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.role.id_for_label }}" class="form-label text-light">Role <span class="text-danger">*</span></label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                        <div class="text-danger">
+                            {% for error in form.role.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label text-light">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger">
+                            {% for error in form.category.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            <small>You can <a href="{% url 'accounts:employee_category_create' %}" class="text-light">create a new category</a> if needed.</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.phone.id_for_label }}" class="form-label text-light">Phone Number</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                        <div class="text-danger">
+                            {% for error in form.phone.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label text-light">Profile Picture URL</label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                        <div class="text-danger">
+                            {% for error in form.profile_picture.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="{{ form.address.id_for_label }}" class="form-label text-light">Address</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                        <div class="text-danger">
+                            {% for error in form.address.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <hr class="border-purple">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'employees:employee_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-purple">
+                            <i class="fas fa-save me-2"></i>{% if is_create %}Create Employee{% else %}Update Employee{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
