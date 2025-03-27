@@ -1,0 +1,105 @@
+Project Title: Django Lead Management Software with Accounting & Employee Management
+
+Tech Stack:
+
+Backend: Django (Python)
+
+Frontend: Bootstrap (Responsive UI)
+
+Database: PostgreSQL/MySQL
+
+APIs: Facebook Ads API (for fetching leads), Excel Import/Export
+
+Authentication & Role-Based Access Control
+
+Color Theme: Dark Purple and Black (Minimalist UI)
+
+Core Features:
+
+Lead Management:
+
+Import leads via Excel
+
+Fetch leads from Facebook Ads API
+
+Assign leads to Sales Representatives
+
+Update lead status and details
+
+Export leads
+
+Accounting & Payment Management:
+
+Add clients and projects
+
+Assign projects to developers
+
+Add & track payments
+
+Payment reports with filtering (day, month, etc.)
+
+Task & Employee Management:
+
+Role-based permissions:
+
+Sales Representative: View & update leads
+
+Manager: Assign leads, upload Excel, track Sales Rep work
+
+Operations Manager: Manage projects, clients, payments
+
+Developers: View assigned tasks, update task status
+
+Admin: Manage everything, assign tasks, view reports
+
+Monthly salary report
+
+Punch-in/Punch-out system
+
+Dashboard & Reports:
+
+Admin can view reports for sales, payments, salaries
+
+Filter reports by day, month, year
+
+Internal Page Structure:
+
+Login Page (Admin, Manager, Sales Rep, Operations Manager, Developer)
+
+Dashboard (Role-based data display)
+
+Leads Page (View, Import, Export, Assign, Update)
+
+Projects Page (Manage Clients, Assign Developers, Update Status)
+
+Tasks Page (View & Update Assigned Tasks)
+
+Payments Page (Add Payments, View Transactions)
+
+Employee Management (Manage Employees, Assign Roles)
+
+Reports Section (Sales, Payments, Salaries, Filter Options)
+
+Frontend UI Considerations:
+
+Bootstrap-powered responsive design
+
+Dark purple & black theme
+
+Minimalist and clean layout
+
+Role-based navigation menu
+
+Deliverables:
+
+Django project setup with models, views, templates
+
+Bootstrap integrated for responsive UI
+
+API integration for Facebook leads
+
+Excel import/export functionality
+
+Authentication system with different roles
+
+Admin dashboard with analytics and filters
