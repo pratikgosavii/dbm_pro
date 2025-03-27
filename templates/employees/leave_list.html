@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Leave Applications{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+    
+    .status-pending {
+        background-color: #f39c12;
+        color: white;
+    }
+    
+    .status-approved {
+        background-color: #27ae60;
+        color: white;
+    }
+    
+    .status-declined {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .status-cancelled {
+        background-color: #7f8c8d;
+        color: white;
+    }
+    
+    .leave-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .leave-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .leave-card .card-header {
+        border-bottom: none;
+        padding-bottom: 0.5rem;
+    }
+    
+    .leave-card .card-footer {
+        background-color: transparent;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .leave-filters {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .leave-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    
+    .leave-type-sick {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .leave-type-casual {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .leave-type-annual {
+        background-color: #2ecc71;
+        color: white;
+    }
+    
+    .leave-type-paternity {
+        background-color: #9b59b6;
+        color: white;
+    }
+    
+    .leave-type-maternity {
+        background-color: #e84393;
+        color: white;
+    }
+    
+    .leave-type-bereavement {
+        background-color: #34495e;
+        color: white;
+    }
+    
+    .leave-type-unpaid {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .leave-type-other {
+        background-color: #7f8c8d;
+        color: white;
+    }
+    
+    .date-range {
+        background-color: rgba(62, 100, 255, 0.1);
+        color: var(--primary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Leave Applications</h1>
+        
+        <div>
+            <a href="{% url 'employees:leave_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Apply for Leave
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="leave-filters mb-4 animate__animated animate__fadeIn">
+        <form method="get" class="row g-3">
+            {% if employees %}
+            <div class="col-md-3">
+                <label for="employee" class="form-label">Employee</label>
+                <select name="employee" id="employee" class="form-select">
+                    <option value="">All Employees</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.id }}" {% if current_employee == emp.id|stringformat:"s" %}selected{% endif %}>
+                        {{ emp.get_full_name|default:emp.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for status_value, status_label in status_choices %}
+                    <option value="{{ status_value }}" {% if current_status == status_value %}selected{% endif %}>
+                        {{ status_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="leave_type" class="form-label">Leave Type</label>
+                <select name="leave_type" id="leave_type" class="form-select">
+                    <option value="">All Types</option>
+                    {% for type_value, type_label in leave_type_choices %}
+                    <option value="{{ type_value }}" {% if current_leave_type == type_value %}selected{% endif %}>
+                        {{ type_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{% url 'employees:leave_list' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Leave Applications -->
+    <div class="row g-3">
+        {% if leaves %}
+            {% for leave in leaves %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card leave-card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">
+                                <span class="leave-badge leave-type-{{ leave.leave_type }}">
+                                    {{ leave.get_leave_type_display }}
+                                </span>
+                            </h5>
+                            <p class="text-muted mb-0 small">
+                                Applied on {{ leave.applied_on|date:"d M, Y" }}
+                            </p>
+                        </div>
+                        <span class="status-pill status-{{ leave.status }}">
+                            {{ leave.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        {% if not user.userprofile.is_admin and not user.userprofile.is_ops_manager %}
+                            <p class="card-text"><strong>Employee:</strong> {{ leave.employee.get_full_name|default:leave.employee.username }}</p>
+                        {% endif %}
+                        
+                        <p class="card-text mb-3">
+                            <span class="date-range">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                {{ leave.start_date|date:"d M, Y" }} - {{ leave.end_date|date:"d M, Y" }}
+                            </span>
+                            <span class="badge bg-info text-white ms-2">{{ leave.duration }} day{{ leave.duration|pluralize }}</span>
+                        </p>
+                        
+                        <p class="card-text">
+                            <strong>Reason:</strong><br>
+                            {{ leave.reason|truncatechars:100 }}
+                        </p>
+                        
+                        {% if leave.status != 'pending' and leave.response_date %}
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                {% if leave.status == 'approved' %}
+                                <i class="fas fa-check-circle text-success me-1"></i> Approved by
+                                {% elif leave.status == 'declined' %}
+                                <i class="fas fa-times-circle text-danger me-1"></i> Declined by
+                                {% else %}
+                                <i class="fas fa-ban text-secondary me-1"></i> Cancelled 
+                                {% if leave.approved_by %}by{% endif %}
+                                {% endif %}
+                                {% if leave.approved_by %}
+                                {{ leave.approved_by.get_full_name|default:leave.approved_by.username }} on {{ leave.response_date|date:"d M, Y" }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'employees:leave_detail' leave.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> View Details
+                            </a>
+                            
+                            <div>
+                            {% if leave.status == 'pending' %}
+                                {% if user.userprofile.is_admin or user.userprofile.is_ops_manager %}
+                                <a href="{% url 'employees:leave_respond' leave.id %}" class="btn btn-sm btn-success me-1">
+                                    <i class="fas fa-reply me-1"></i> Respond
+                                </a>
+                                {% endif %}
+                                
+                                {% if user == leave.employee or user.userprofile.is_admin %}
+                                <a href="{% url 'employees:leave_cancel' leave.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-ban me-1"></i> Cancel
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h5>No leave applications found</h5>
+                        <p class="text-muted">
+                            {% if current_employee or current_status or current_leave_type %}
+                            Try changing your filter criteria
+                            {% else %}
+                            No leave applications available
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'employees:leave_create' %}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus-circle me-1"></i> Apply for Leave
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit when filters change
+        document.getElementById('employee')?.addEventListener('change', function() {
+            this.form.submit();
+        });
+        
+        document.getElementById('status')?.addEventListener('change', function() {
+            this.form.submit();
+        });
+        
+        document.getElementById('leave_type')?.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
+{% endblock %}

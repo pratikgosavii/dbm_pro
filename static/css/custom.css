@@ -174,6 +174,10 @@ body {
     background-color: white;
     border: 1px solid #ced4da;
     color: var(--text-dark);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
 }
 
 .form-control:focus, .form-select:focus {
@@ -192,10 +196,42 @@ body {
     color: var(--text-dark);
     margin-bottom: 0.5rem;
     font-size: 1rem;
+    display: block;
 }
 
+/* Better contrast for dark forms */
 .bg-dark .form-label {
     color: #f8f9fa !important;
+}
+
+/* Improve form field visibility */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+/* Make dark background form fields stand out */
+.bg-dark .form-control, 
+.bg-dark .form-select,
+.dark-form .form-control,
+.dark-form .form-select {
+    background-color: #fff;
+    color: #212529;
+    border: 1px solid #495057;
+}
+
+/* Custom styling for salary form fields */
+.salary-form .form-control,
+.salary-form .form-select {
+    background-color: #fff;
+    border: 2px solid #3E64FF;
+    color: #212529;
+}
+
+/* Make form field labels visible against dark backgrounds */
+.bg-dark-subtle label,
+.bg-dark label {
+    color: #fff !important;
+    font-weight: 600;
 }
 
 /* Enhanced form field labels */

@@ -43,8 +43,18 @@
         {% endif %}
         
         <!-- All users can view attendance -->
-        <a href="{% url 'employees:attendance_log' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/attendance/' in request.path %}active{% endif %}">
+        <a href="{% url 'employees:attendance_log' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/attendance/' in request.path and 'calendar' not in request.path %}active{% endif %}">
             <i class="fas fa-clock me-2 text-primary"></i>Attendance
+        </a>
+        
+        <!-- All users can view attendance calendar -->
+        <a href="{% url 'employees:attendance_calendar' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if 'calendar' in request.path %}active{% endif %}">
+            <i class="fas fa-calendar-alt me-2 text-primary"></i>Calendar
+        </a>
+        
+        <!-- All users can view leave applications -->
+        <a href="{% url 'employees:leave_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/leaves/' in request.path %}active{% endif %}">
+            <i class="fas fa-plane-departure me-2 text-primary"></i>Leave Management
         </a>
         
         <!-- All users can view tasks -->

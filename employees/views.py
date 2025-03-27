@@ -1,12 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.models import User
-from .models import Attendance, Salary, EmployeeTask
-from .forms import AttendanceForm, SalaryForm, PunchForm, EmployeeTaskForm
+import json
+import calendar
+import datetime
+from .models import Attendance, Salary, EmployeeTask, LeaveApplication
+from .forms import (
+    AttendanceForm, SalaryForm, PunchForm, EmployeeTaskForm,
+    LeaveApplicationForm, LeaveResponseForm
+)
 
 @login_required
 def employee_list(request):
@@ -305,6 +311,301 @@ def salary_update(request, pk):
     }
     
     return render(request, 'employees/salary_form.html', context)
+
+# Add a view to calculate salaries
+@login_required
+def salary_calculate(request, pk):
+    """Calculate salary based on attendance records"""
+    salary = get_object_or_404(Salary, pk=pk)
+    
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
+        messages.error(request, "You don't have permission to calculate salaries.")
+        return redirect('employees:salary_list')
+    
+    # Calculate and save
+    salary.calculate_salary()
+    salary.save()
+    
+    messages.success(request, f"Salary calculated based on {salary.days_present} days present out of {salary.working_days} working days.")
+    return redirect('employees:salary_update', pk=salary.pk)
+
+# Attendance Calendar View
+@login_required
+def attendance_calendar(request):
+    """View for calendar view of attendance"""
+    # Get year and month from request, default to current
+    year = int(request.GET.get('year', timezone.now().year))
+    month = int(request.GET.get('month', timezone.now().month))
+    
+    # Determine which employee's attendance to show
+    user_profile = request.user.userprofile
+    employee_id = request.GET.get('employee')
+    
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        if employee_id:
+            employee = get_object_or_404(User, pk=employee_id)
+        else:
+            # Default to the first employee
+            employee = User.objects.first()
+        
+        employees = User.objects.all().order_by('username')
+    else:
+        # Regular employees can only see their own attendance
+        employee = request.user
+        employees = None
+    
+    # Get the calendar for the selected month/year
+    cal = calendar.monthcalendar(year, month)
+    month_name = calendar.month_name[month]
+    
+    # Get attendance records for the selected month/year
+    start_date = datetime.date(year, month, 1)
+    # Get the last day of the month
+    if month == 12:
+        end_date = datetime.date(year + 1, 1, 1) - datetime.timedelta(days=1)
+    else:
+        end_date = datetime.date(year, month + 1, 1) - datetime.timedelta(days=1)
+    
+    attendances = Attendance.objects.filter(
+        employee=employee,
+        date__range=[start_date, end_date]
+    )
+    
+    # Convert to dictionary for easy lookup
+    attendance_dict = {attendance.date: attendance for attendance in attendances}
+    
+    # Get leave applications for this period
+    leaves = LeaveApplication.objects.filter(
+        employee=employee,
+        start_date__lte=end_date,
+        end_date__gte=start_date,
+        status='approved'
+    )
+    
+    # Create a list of dates that are on approved leave
+    leave_dates = []
+    for leave in leaves:
+        current_date = max(leave.start_date, start_date)
+        while current_date <= min(leave.end_date, end_date):
+            leave_dates.append(current_date)
+            current_date += datetime.timedelta(days=1)
+    
+    # Convert the calendar data to include attendance status
+    calendar_data = []
+    for week in cal:
+        week_data = []
+        for day in week:
+            if day == 0:
+                # Day outside current month
+                week_data.append({
+                    'day': '',
+                    'status': None,
+                    'is_today': False,
+                    'attendance': None,
+                    'on_leave': False
+                })
+            else:
+                date = datetime.date(year, month, day)
+                attendance = attendance_dict.get(date)
+                
+                week_data.append({
+                    'day': day,
+                    'status': attendance.status if attendance else None,
+                    'is_today': date == timezone.now().date(),
+                    'attendance': attendance,
+                    'on_leave': date in leave_dates
+                })
+        calendar_data.append(week_data)
+    
+    # Generate month navigation links
+    prev_month = month - 1
+    prev_year = year
+    if prev_month == 0:
+        prev_month = 12
+        prev_year -= 1
+    
+    next_month = month + 1
+    next_year = year
+    if next_month == 13:
+        next_month = 1
+        next_year += 1
+    
+    context = {
+        'calendar_data': calendar_data,
+        'month_name': month_name,
+        'year': year,
+        'employee': employee,
+        'employees': employees,
+        'current_employee': employee_id,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+    }
+    
+    return render(request, 'employees/attendance_calendar.html', context)
+
+# Leave Management Views
+@login_required
+def leave_list(request):
+    """List leave applications"""
+    user_profile = request.user.userprofile
+    
+    # Initialize filter variables
+    employee_id = None
+    status = None
+    leave_type = None
+    
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        leaves = LeaveApplication.objects.all()
+        
+        # Filter by employee
+        employee_id = request.GET.get('employee')
+        if employee_id:
+            leaves = leaves.filter(employee_id=employee_id)
+    else:
+        # Regular employees can only see their own leaves
+        leaves = LeaveApplication.objects.filter(employee=request.user)
+    
+    # Filter by status if specified
+    status = request.GET.get('status')
+    if status:
+        leaves = leaves.filter(status=status)
+    
+    # Filter by leave type if specified
+    leave_type = request.GET.get('leave_type')
+    if leave_type:
+        leaves = leaves.filter(leave_type=leave_type)
+    
+    # Order by application date, most recent first
+    leaves = leaves.order_by('-applied_on')
+    
+    # Get all employees for the filter dropdown (admins/managers only)
+    employees = None
+    if user_profile.is_admin or user_profile.is_ops_manager:
+        employees = User.objects.all().order_by('username')
+    
+    context = {
+        'leaves': leaves,
+        'employees': employees,
+        'current_employee': employee_id,
+        'current_status': status,
+        'current_leave_type': leave_type,
+        'status_choices': LeaveApplication.STATUS_CHOICES,
+        'leave_type_choices': LeaveApplication.LEAVE_TYPE_CHOICES,
+    }
+    
+    return render(request, 'employees/leave_list.html', context)
+
+@login_required
+def leave_create(request):
+    """Create a new leave application"""
+    if request.method == 'POST':
+        form = LeaveApplicationForm(request.POST)
+        if form.is_valid():
+            leave = form.save(commit=False)
+            leave.employee = request.user
+            leave.save()
+            
+            messages.success(request, 'Leave application submitted successfully.')
+            return redirect('employees:leave_list')
+    else:
+        form = LeaveApplicationForm()
+    
+    context = {
+        'form': form,
+        'is_create': True,
+    }
+    
+    return render(request, 'employees/leave_form.html', context)
+
+@login_required
+def leave_detail(request, pk):
+    """View details of a leave application"""
+    leave = get_object_or_404(LeaveApplication, pk=pk)
+    
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager or leave.employee == request.user):
+        messages.error(request, "You don't have permission to view this leave application.")
+        return redirect('employees:leave_list')
+    
+    context = {
+        'leave': leave,
+    }
+    
+    return render(request, 'employees/leave_detail.html', context)
+
+@login_required
+def leave_respond(request, pk):
+    """Respond to a leave application (approve/decline)"""
+    leave = get_object_or_404(LeaveApplication, pk=pk)
+    
+    # Check permission
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin or user_profile.is_ops_manager):
+        messages.error(request, "You don't have permission to respond to leave applications.")
+        return redirect('employees:leave_list')
+    
+    if leave.status != 'pending':
+        messages.warning(request, "This leave application has already been processed.")
+        return redirect('employees:leave_detail', pk=leave.pk)
+    
+    if request.method == 'POST':
+        form = LeaveResponseForm(request.POST, instance=leave)
+        if form.is_valid():
+            response = form.save(commit=False)
+            response.approved_by = request.user
+            response.response_date = timezone.now()
+            response.save()
+            
+            if response.status == 'approved':
+                messages.success(request, 'Leave application approved successfully.')
+            else:
+                messages.info(request, 'Leave application has been declined.')
+                
+            return redirect('employees:leave_detail', pk=leave.pk)
+    else:
+        form = LeaveResponseForm(instance=leave)
+    
+    context = {
+        'form': form,
+        'leave': leave,
+    }
+    
+    return render(request, 'employees/leave_response_form.html', context)
+
+@login_required
+def leave_cancel(request, pk):
+    """Cancel a leave application"""
+    leave = get_object_or_404(LeaveApplication, pk=pk)
+    
+    # Check permission (only the employee who applied or admin can cancel)
+    if not (request.user == leave.employee or request.user.userprofile.is_admin):
+        messages.error(request, "You don't have permission to cancel this leave application.")
+        return redirect('employees:leave_list')
+    
+    if leave.status != 'pending' and not request.user.userprofile.is_admin:
+        messages.warning(request, "This leave application has already been processed and cannot be cancelled.")
+        return redirect('employees:leave_detail', pk=leave.pk)
+    
+    if request.method == 'POST':
+        leave.status = 'cancelled'
+        leave.response_date = timezone.now()
+        if request.user.userprofile.is_admin:
+            leave.approved_by = request.user
+        leave.save()
+        
+        messages.success(request, 'Leave application cancelled successfully.')
+        return redirect('employees:leave_list')
+    
+    context = {
+        'leave': leave,
+    }
+    
+    return render(request, 'employees/leave_cancel_confirm.html', context)
 
 # Task Management Views
 @login_required
