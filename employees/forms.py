@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Attendance, Salary
+from .models import Attendance, Salary, EmployeeTask
 
 class AttendanceForm(forms.ModelForm):
     class Meta:
@@ -40,3 +40,26 @@ class SalaryForm(forms.ModelForm):
             'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+class EmployeeTaskForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeTask
+        fields = [
+            'title', 'description', 'assigned_to', 'priority',
+            'status', 'start_date', 'due_date', 'notes'
+        ]
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'assigned_to': forms.Select(attrs={'class': 'form-control'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+    
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user and not user.userprofile.is_admin() and not user.userprofile.is_manager():
+            self.fields['assigned_to'].queryset = User.objects.filter(pk=user.pk)

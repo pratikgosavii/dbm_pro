@@ -5,8 +5,8 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Q
 from django.contrib.auth.models import User
-from .models import Attendance, Salary
-from .forms import AttendanceForm, SalaryForm, PunchForm
+from .models import Attendance, Salary, EmployeeTask
+from .forms import AttendanceForm, SalaryForm, PunchForm, EmployeeTaskForm
 
 @login_required
 def employee_list(request):
@@ -265,3 +265,130 @@ def salary_update(request, pk):
     }
     
     return render(request, 'employees/salary_form.html', context)
+
+# Task Management Views
+@login_required
+def task_list(request):
+    user_profile = request.user.userprofile
+    
+    # Determine which tasks to show based on user role
+    if user_profile.is_admin() or user_profile.is_manager():
+        # Admins and managers can see all tasks
+        tasks = EmployeeTask.objects.all()
+        
+        # Filter by assigned employee if specified
+        employee_id = request.GET.get('employee')
+        if employee_id:
+            tasks = tasks.filter(assigned_to_id=employee_id)
+    else:
+        # Regular users can only see their own tasks
+        tasks = EmployeeTask.objects.filter(assigned_to=request.user)
+    
+    # Filter by status if specified
+    status = request.GET.get('status')
+    if status:
+        tasks = tasks.filter(status=status)
+    
+    # Filter by priority if specified
+    priority = request.GET.get('priority')
+    if priority:
+        tasks = tasks.filter(priority=priority)
+    
+    # Get all employees for filter dropdown (if user is admin/manager)
+    employees = None
+    if user_profile.is_admin() or user_profile.is_manager():
+        employees = User.objects.all()
+    
+    context = {
+        'tasks': tasks,
+        'employees': employees,
+        'current_employee': request.GET.get('employee'),
+        'current_status': status,
+        'current_priority': priority,
+        'status_choices': EmployeeTask.STATUS_CHOICES,
+        'priority_choices': EmployeeTask.PRIORITY_CHOICES
+    }
+    
+    return render(request, 'employees/task_list.html', context)
+
+@login_required
+def task_detail(request, pk):
+    task = get_object_or_404(EmployeeTask, pk=pk)
+    
+    # Check permissions
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_to == request.user or task.assigned_by == request.user):
+        messages.error(request, "You don't have permission to view this task.")
+        return redirect('employees:task_list')
+    
+    context = {
+        'task': task
+    }
+    
+    return render(request, 'employees/task_detail.html', context)
+
+@login_required
+def task_create(request):
+    user_profile = request.user.userprofile
+    
+    if request.method == 'POST':
+        form = EmployeeTaskForm(request.POST, user=request.user)
+        if form.is_valid():
+            task = form.save(commit=False)
+            task.assigned_by = request.user
+            task.save()
+            messages.success(request, 'Task created successfully.')
+            return redirect('employees:task_list')
+    else:
+        form = EmployeeTaskForm(user=request.user)
+    
+    context = {
+        'form': form,
+        'is_create': True
+    }
+    
+    return render(request, 'employees/task_form.html', context)
+
+@login_required
+def task_update(request, pk):
+    task = get_object_or_404(EmployeeTask, pk=pk)
+    
+    # Check permissions
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_by == request.user):
+        messages.error(request, "You don't have permission to update this task.")
+        return redirect('employees:task_list')
+    
+    if request.method == 'POST':
+        form = EmployeeTaskForm(request.POST, instance=task, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Task updated successfully.')
+            return redirect('employees:task_detail', pk=task.pk)
+    else:
+        form = EmployeeTaskForm(instance=task, user=request.user)
+    
+    context = {
+        'form': form,
+        'task': task,
+        'is_create': False
+    }
+    
+    return render(request, 'employees/task_form.html', context)
+
+@login_required
+def task_complete(request, pk):
+    task = get_object_or_404(EmployeeTask, pk=pk)
+    
+    # Check permissions (only assigned employee or admin/manager can mark as complete)
+    user_profile = request.user.userprofile
+    if not (user_profile.is_admin() or user_profile.is_manager() or task.assigned_to == request.user):
+        messages.error(request, "You don't have permission to complete this task.")
+        return redirect('employees:task_list')
+    
+    task.status = 'completed'
+    task.completed_date = timezone.now().date()
+    task.save()
+    
+    messages.success(request, 'Task marked as completed.')
+    return redirect('employees:task_detail', pk=task.pk)

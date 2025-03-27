@@ -3,6 +3,50 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 
+class EmployeeTask(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    PRIORITY_CHOICES = (
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    )
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_tasks')
+    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_tasks')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    start_date = models.DateField(default=timezone.now)
+    due_date = models.DateField(blank=True, null=True)
+    completed_date = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-priority', 'due_date', 'status']
+    
+    def __str__(self):
+        return self.title
+    
+    @property
+    def is_completed(self):
+        return self.status == 'completed'
+    
+    @property
+    def is_overdue(self):
+        if self.due_date and not self.is_completed and self.due_date < timezone.now().date():
+            return True
+        return False
+    
 class Attendance(models.Model):
     STATUS_CHOICES = (
         ('present', 'Present'),
