@@ -48,4 +48,9 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.userprofile.save()
+    try:
+        if hasattr(instance, 'userprofile'):
+            instance.userprofile.save()
+    except Exception as e:
+        print(f"Error saving user profile: {e}")
+        pass
