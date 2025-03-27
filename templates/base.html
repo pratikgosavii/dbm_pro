@@ -93,33 +93,10 @@
             </button>
         </div>
         <div class="contacts-search">
-            <input type="text" class="contacts-search-input" placeholder="Search contacts...">
+            <input type="text" class="contacts-search-input" placeholder="Search contacts..." id="contactSearchInput">
         </div>
-        <div class="contacts-list">
-            {% for conversation in recent_conversations %}
-            <div class="contact-item" data-user-id="{{ conversation.user.id }}">
-                <div class="contact-avatar">
-                    {% if conversation.user.userprofile.profile_picture %}
-                    <img src="{{ conversation.user.userprofile.profile_picture }}" alt="{{ conversation.user.get_full_name }}" width="36" height="36">
-                    {% else %}
-                    {{ conversation.user.first_name|first }}{{ conversation.user.last_name|first }}
-                    {% endif %}
-                </div>
-                <div class="contact-info">
-                    <div class="contact-name">{{ conversation.user.get_full_name|default:conversation.user.username }}</div>
-                    <div class="contact-status">
-                        {% if conversation.last_message %}
-                        {{ conversation.last_message.content|truncatechars:20 }}
-                        {% else %}
-                        Start a conversation
-                        {% endif %}
-                    </div>
-                </div>
-                {% if conversation.unread_count > 0 %}
-                <div class="contact-notification"></div>
-                {% endif %}
-            </div>
-            {% endfor %}
+        <div class="contacts-list" id="contactsList">
+            <!-- Contacts will be loaded dynamically via JavaScript -->
         </div>
     </div>
 
@@ -254,6 +231,118 @@
                 chatMinimized = false;
             });
             
+            // Load contacts list
+            function loadContacts() {
+                const contactsList = document.getElementById('contactsList');
+                
+                // These would typically come from an AJAX call to your server
+                // For demo purposes, let's create some sample contacts
+                const demoContacts = [
+                    {
+                        id: 1,
+                        name: 'John Doe',
+                        profilePicture: null,
+                        lastMessage: 'Thanks for the update!',
+                        unreadCount: 2
+                    },
+                    {
+                        id: 2,
+                        name: 'Jane Smith',
+                        profilePicture: null,
+                        lastMessage: 'When is the meeting scheduled?',
+                        unreadCount: 0
+                    },
+                    {
+                        id: 3,
+                        name: 'Alex Johnson',
+                        profilePicture: null,
+                        lastMessage: 'The project looks great!',
+                        unreadCount: 1
+                    },
+                    {
+                        id: 4,
+                        name: 'Sarah Williams',
+                        profilePicture: null,
+                        lastMessage: 'I\'ll send the files tomorrow.',
+                        unreadCount: 0
+                    }
+                ];
+                
+                // Clear the current list
+                contactsList.innerHTML = '';
+                
+                // Create the contact items
+                demoContacts.forEach(contact => {
+                    const contactItem = document.createElement('div');
+                    contactItem.className = 'contact-item';
+                    contactItem.setAttribute('data-user-id', contact.id);
+                    
+                    // Create initials from name
+                    const initials = contact.name.split(' ').map(name => name[0]).join('');
+                    
+                    // Create the contact HTML
+                    contactItem.innerHTML = `
+                        <div class="contact-avatar">
+                            ${contact.profilePicture ? 
+                              `<img src="${contact.profilePicture}" alt="${contact.name}" width="36" height="36">` : 
+                              initials}
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name">${contact.name}</div>
+                            <div class="contact-status">
+                                ${contact.lastMessage || 'Start a conversation'}
+                            </div>
+                        </div>
+                        ${contact.unreadCount > 0 ? '<div class="contact-notification"></div>' : ''}
+                    `;
+                    
+                    // Add click event to open chat
+                    contactItem.addEventListener('click', function() {
+                        const userId = this.getAttribute('data-user-id');
+                        const userName = this.querySelector('.contact-name').textContent;
+                        const userInitials = userName.split(' ').map(name => name[0]).join('');
+                        
+                        currentChatUserId = userId;
+                        chatRecipientName.textContent = userName;
+                        chatRecipientAvatar.textContent = userInitials;
+                        
+                        // Load the messages
+                        loadMessages(userId);
+                        
+                        // Hide contacts and show chat
+                        chatContactsPopup.classList.remove('active');
+                        chatPopup.classList.add('active');
+                        chatMinimized = false;
+                        
+                        // Remove notification from this contact
+                        const notification = this.querySelector('.contact-notification');
+                        if (notification) {
+                            notification.style.display = 'none';
+                        }
+                    });
+                    
+                    contactsList.appendChild(contactItem);
+                });
+                
+                // Setup search functionality
+                const searchInput = document.getElementById('contactSearchInput');
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    const contactItems = contactsList.querySelectorAll('.contact-item');
+                    
+                    contactItems.forEach(item => {
+                        const name = item.querySelector('.contact-name').textContent.toLowerCase();
+                        const status = item.querySelector('.contact-status').textContent.toLowerCase();
+                        
+                        if (name.includes(query) || status.includes(query)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
             // Send message
             sendMessageBtn.addEventListener('click', sendMessage);
             chatInput.addEventListener('keydown', function(e) {
@@ -349,6 +438,9 @@
             
             // Initialize chat when page loads
             checkForActiveConversations();
+            
+            // Load contacts list
+            loadContacts();
         });
     </script>
     {% endif %}

@@ -25,6 +25,7 @@
     --info: #0abde3;          /* Bright Blue */
     --border-color: #d1dbe8;  /* Light border color */
     --notification-dot: #ff3838; /* Bright red notification dot */
+    --form-heading: #8D0B41;  /* Dark Burgundy for form headings per user request */
 }
 
 /* General Styles */
@@ -599,7 +600,7 @@ textarea.form-control {
 
 /* Card header improvement */
 .card-header {
-    background-color: var(--primary) !important;
+    background-color: var(--form-heading) !important;
     color: white !important;
     font-weight: 500;
 }
@@ -805,7 +806,7 @@ textarea.form-control {
 
 .card-header {
     border-bottom: 1px solid rgba(0,0,0,0.1);
-    background-color: var(--primary) !important;
+    background-color: var(--form-heading) !important;
     color: white !important;
     font-weight: 500;
     padding: 0.75rem 1.25rem;
@@ -862,7 +863,7 @@ textarea.form-control {
 }
 
 .table thead tr {
-    background-color: var(--primary);
+    background-color: var(--form-heading);
     color: white;
     font-weight: 500;
 }
