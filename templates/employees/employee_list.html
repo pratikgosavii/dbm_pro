@@ -12,7 +12,7 @@
                 <button class="btn btn-purple dropdown-toggle" type="button" id="employeeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-plus me-2"></i>Add New
                 </button>
-                <ul class="dropdown-menu dropdown-menu-dark border-purple" aria-labelledby="employeeDropdown">
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end border-purple" aria-labelledby="employeeDropdown" style="z-index: 1021;">
                     <li>
                         <a class="dropdown-item text-light" href="{% url 'accounts:employee_create' %}">
                             <i class="fas fa-user-plus me-2 text-purple"></i>New Employee
@@ -96,26 +96,38 @@
                     </thead>
                     <tbody>
                         {% for employee in employees %}
-                        <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|divisibleby:10 }}0ms">
+                        <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|divisibleby:5 }}00ms">
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ employee.get_full_name|default:employee.username }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-purple me-2 animate__animated animate__pulse animate__infinite">
+                                        {{ employee.first_name|first|default:employee.username|first|upper }}
+                                    </div>
+                                    <span>{{ employee.get_full_name|default:employee.username }}</span>
+                                </div>
+                            </td>
                             <td>{{ employee.username }}</td>
                             <td>{{ employee.email|default:"-" }}</td>
                             <td>
-                                <span class="badge bg-purple">{{ employee.userprofile.get_role_display }}</span>
+                                <span class="badge bg-purple animate__animated animate__fadeIn">{{ employee.userprofile.get_role_display }}</span>
                             </td>
                             <td>
                                 {% if employee.is_active %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success animate__animated animate__fadeIn">Active</span>
                                 {% else %}
-                                <span class="badge bg-danger">Inactive</span>
+                                <span class="badge bg-danger animate__animated animate__fadeIn">Inactive</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'employees:employee_detail' employee.id %}" class="btn btn-info">
+                                <div class="btn-group btn-group-sm animate__animated animate__fadeIn">
+                                    <a href="{% url 'employees:employee_detail' employee.id %}" class="btn btn-purple" title="View Employee">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    {% if user.userprofile.is_admin %}
+                                    <a href="#" class="btn btn-outline-purple" title="Edit Employee">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

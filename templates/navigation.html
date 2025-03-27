@@ -29,8 +29,12 @@
             <i class="fas fa-money-bill-wave me-2 text-primary"></i>Payments
         </a>
         
-        <a href="{% url 'employees:employee_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'employees' and '/salaries/' not in request.path and '/attendance/' not in request.path %}active{% endif %}">
+        <a href="{% url 'employees:employee_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.namespace == 'employees' and '/salaries/' not in request.path and '/attendance/' not in request.path and '/categories/' not in request.path and request.resolver_match.url_name != 'employee_category_list' %}active{% endif %}">
             <i class="fas fa-users me-2 text-primary"></i>Employees
+        </a>
+        
+        <a href="{% url 'accounts:employee_category_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if request.resolver_match.url_name == 'employee_category_list' or request.resolver_match.url_name == 'employee_category_create' %}active{% endif %}">
+            <i class="fas fa-tags me-2 text-primary"></i>Employee Categories
         </a>
         
         <a href="{% url 'employees:salary_list' %}" class="list-group-item list-group-item-action bg-transparent text-dark border-0 {% if '/salaries/' in request.path %}active{% endif %}">

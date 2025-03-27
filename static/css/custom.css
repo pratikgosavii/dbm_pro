@@ -122,6 +122,46 @@ body {
     border-color: var(--accent) !important;
 }
 
+/* Purple Theme Classes */
+.text-purple {
+    color: var(--primary) !important;
+}
+
+.bg-purple {
+    background-color: var(--primary) !important;
+}
+
+.border-purple {
+    border-color: var(--primary) !important;
+}
+
+.btn-purple {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-purple:hover {
+    background-color: var(--primary-dark);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-purple {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background-color: transparent;
+    transition: all 0.3s;
+}
+
+.btn-outline-purple:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
 .bg-grey {
     background-color: white !important;
 }
@@ -145,6 +185,30 @@ body {
 
 .form-control::placeholder {
     color: var(--text-muted);
+}
+
+/* Dark Mode Form Controls */
+.bg-dark .form-control, 
+.bg-dark .form-select,
+.form-control.bg-dark,
+.form-select.bg-dark {
+    background-color: #212529;
+    border-color: #495057;
+    color: #f8f9fa;
+}
+
+.bg-dark .form-control:focus, 
+.bg-dark .form-select:focus,
+.form-control.bg-dark:focus,
+.form-select.bg-dark:focus {
+    background-color: #2c3034;
+    border-color: var(--primary);
+    color: #f8f9fa;
+}
+
+.bg-dark .form-control::placeholder,
+.form-control.bg-dark::placeholder {
+    color: #adb5bd;
 }
 
 /* Loading Overlay */
@@ -489,6 +553,28 @@ body {
 .badge-secondary {
     background-color: var(--light-secondary);
     color: var(--text-dark);
+}
+
+/* Avatar Circle */
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    font-size: 16px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.avatar-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Status badges */
