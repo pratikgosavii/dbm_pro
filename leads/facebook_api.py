@@ -25,19 +25,26 @@ def import_facebook_leads(user):
     # Format dates for Facebook API
     since = int(start_date.timestamp())
 
-    # Get leads from Facebook
-    url = f"https://graph.facebook.com/v18.0/me/leads"
-    params = {
-        'access_token': access_token,
-        'since': since,
-        'fields': 'id,created_time,field_data'
-    }
+    try:
+        # Get leads from Facebook
+        url = f"https://graph.facebook.com/v18.0/me/leads"
+        params = {
+            'access_token': access_token,
+            'since': since,
+            'fields': 'id,created_time,field_data'
+        }
 
-    response = requests.get(url, params=params)
-    data = response.json()
+        response = requests.get(url, params=params)
+        data = response.json()
 
-    if 'error' in data:
-        raise ValueError(f"Facebook API error: {data['error'].get('message', 'Unknown error')}")
+        if 'error' in data:
+            error_msg = data['error'].get('message', 'Unknown error')
+            if 'invalid_token' in error_msg.lower():
+                raise ValueError("Facebook access token is invalid or expired. Please check your configuration.")
+            elif 'permission' in error_msg.lower():
+                raise ValueError("Missing required Facebook permissions. Please check app permissions.")
+            else:
+                raise ValueError(f"Facebook API error: {error_msg}")
 
     imported_count = 0
     leads = data.get('data', [])

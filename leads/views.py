@@ -249,10 +249,19 @@ def facebook_leads_import(request):
     
     if request.method == 'POST':
         try:
+            if not settings.FACEBOOK_ACCESS_TOKEN:
+                messages.error(request, "Facebook access token is not configured. Please set up your Facebook API credentials.")
+                return redirect('leads:lead_list')
+                
             imported_count = import_facebook_leads(request.user)
-            messages.success(request, f'{imported_count} leads imported from Facebook.')
+            if imported_count == 0:
+                messages.warning(request, 'No new leads found to import from Facebook.')
+            else:
+                messages.success(request, f'{imported_count} leads imported from Facebook.')
+        except ValueError as e:
+            messages.error(request, str(e))
         except Exception as e:
-            messages.error(request, f'Error importing Facebook leads: {str(e)}')
+            messages.error(request, f'Unexpected error while importing leads: {str(e)}')
         return redirect('leads:lead_list')
     
     return render(request, 'leads/lead_facebook_import.html')
