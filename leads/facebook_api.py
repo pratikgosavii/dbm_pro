@@ -1,3 +1,4 @@
+
 import requests
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -46,32 +47,35 @@ def import_facebook_leads(user):
             else:
                 raise ValueError(f"Facebook API error: {error_msg}")
 
-    imported_count = 0
-    leads = data.get('data', [])
+        imported_count = 0
+        leads = data.get('data', [])
 
-    for lead in leads:
-        facebook_lead_id = lead.get('id')
+        for lead in leads:
+            facebook_lead_id = lead.get('id')
 
-        # Skip if lead already exists
-        if Lead.objects.filter(facebook_lead_id=facebook_lead_id).exists():
-            continue
+            # Skip if lead already exists
+            if Lead.objects.filter(facebook_lead_id=facebook_lead_id).exists():
+                continue
 
-        field_data = {
-            field['name']: field['values'][0] 
-            for field in lead.get('field_data', [])
-            if field.get('values')
-        }
+            field_data = {
+                field['name']: field['values'][0] 
+                for field in lead.get('field_data', [])
+                if field.get('values')
+            }
 
-        # Create new lead
-        Lead.objects.create(
-            name=field_data.get('full_name', 'Unknown'),
-            email=field_data.get('email'),
-            phone=field_data.get('phone_number'),
-            company=field_data.get('company_name'),
-            source=facebook_source,
-            facebook_lead_id=facebook_lead_id,
-            created_by=user
-        )
-        imported_count += 1
+            # Create new lead
+            Lead.objects.create(
+                name=field_data.get('full_name', 'Unknown'),
+                email=field_data.get('email'),
+                phone=field_data.get('phone_number'),
+                company=field_data.get('company_name'),
+                source=facebook_source,
+                facebook_lead_id=facebook_lead_id,
+                created_by=user
+            )
+            imported_count += 1
 
-    return imported_count
+        return imported_count
+        
+    except Exception as e:
+        raise ValueError(f"Error importing leads: {str(e)}")
