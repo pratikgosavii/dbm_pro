@@ -1,4 +1,3 @@
-
 import requests
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -57,18 +56,31 @@ def import_facebook_leads(user):
             if Lead.objects.filter(facebook_lead_id=facebook_lead_id).exists():
                 continue
 
-            field_data = {
-                field['name']: field['values'][0] 
-                for field in lead.get('field_data', [])
-                if field.get('values')
-            }
+            # Process field data
+            name = None
+            email = None
+            phone = None
+            company = None
 
-            # Create new lead
+            for field in lead.get('field_data', []):
+                field_name = field.get('name', '').lower()
+                field_value = field.get('values', [''])[0] if field.get('values') else ''
+
+                if 'full_name' in field_name or field_name == 'name':
+                    name = field_value
+                elif 'email' in field_name:
+                    email = field_value
+                elif 'phone' in field_name:
+                    phone = field_value
+                elif 'company' in field_name:
+                    company = field_value
+
+            # Create new lead with default name if none found
             Lead.objects.create(
-                name=field_data.get('full_name', 'Unknown'),
-                email=field_data.get('email'),
-                phone=field_data.get('phone_number'),
-                company=field_data.get('company_name'),
+                name=name or 'Unknown Lead',
+                email=email,
+                phone=phone,
+                company=company,
                 source=facebook_source,
                 facebook_lead_id=facebook_lead_id,
                 created_by=user
@@ -76,6 +88,6 @@ def import_facebook_leads(user):
             imported_count += 1
 
         return imported_count
-        
+
     except Exception as e:
         raise ValueError(f"Error importing leads: {str(e)}")
