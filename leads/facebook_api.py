@@ -8,9 +8,11 @@ def import_facebook_leads(user):
     """
     
     # Get Facebook API credentials from settings
-    app_id = "1112476783519226"
-    app_secret = "2654d55335e5b3eeff7d10c4dedf4d40"
-    access_token = "209d6c30bd3165ed8c0c5c0cc8df971f"
+    from django.conf import settings
+    
+    app_id = settings.FACEBOOK_APP_ID
+    app_secret = settings.FACEBOOK_APP_SECRET
+    access_token = settings.FACEBOOK_ACCESS_TOKEN
     
     
     if not all([app_id, app_secret, access_token]):
