@@ -10,7 +10,7 @@ class ChatGroupForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control border-purple'}),
             'description': forms.Textarea(attrs={'class': 'form-control border-purple', 'rows': 3}),
-            'members': forms.SelectMultiple(attrs={'class': 'form-select border-purple', 'size': '5'}),
+            'members': forms.CheckboxSelectMultiple(attrs={'class': 'list-unstyled'}),
         }
     
     def __init__(self, *args, **kwargs):
