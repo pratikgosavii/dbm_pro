@@ -29,6 +29,26 @@
                                     </div>
                                 {% endif %}
                             </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Group Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.description.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Members</label>
+                                <div class="members-checkbox-list border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                    {{ form.members }}
+                                </div>
+                                {% if form.members.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.members.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12 mb-3">
