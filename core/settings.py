@@ -1,5 +1,5 @@
 """
-Django settings for the Lead Management System
+Django settings for Its Digital Business Manager
 """
 
 import os

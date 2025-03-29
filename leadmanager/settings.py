@@ -33,12 +33,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third party apps
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
-    
+
     # Custom apps
     'apps.accounts',
     'apps.leads',
