@@ -48,6 +48,7 @@
                                     Select the users to add to this chat group. You will automatically be added as a member.
                                 </div>
                                 {{ form.members }}
+<small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple members</small>
                                 {% if form.members.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.members.errors }}

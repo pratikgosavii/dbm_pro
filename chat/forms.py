@@ -19,6 +19,11 @@ class ChatGroupForm(forms.ModelForm):
         if user:
             # Exclude the current user from the members field
             self.fields['members'].queryset = User.objects.exclude(id=user.id)
+            self.fields['members'].widget.attrs.update({
+                'class': 'form-select border-purple',
+                'multiple': 'multiple',
+                'size': '5'
+            })
 
 class MessageForm(forms.ModelForm):
     """Form for creating messages"""
