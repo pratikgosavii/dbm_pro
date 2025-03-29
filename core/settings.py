@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'employees',
     'dashboard',
     'payment',
+    'core',
 ]
 
 MIDDLEWARE = [
