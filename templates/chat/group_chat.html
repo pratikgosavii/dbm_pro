@@ -41,7 +41,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="chat-container mb-4" style="height: 400px; overflow-y: auto; display: flex; flex-direction: column;">
+                    <div class="chat-container mb-4" style="height: 300px; overflow-y: auto; display: flex; flex-direction: column;">
                         {% if group_messages %}
                             {% for message in group_messages %}
                                 <div class="message-container {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %} mb-3">
@@ -169,6 +169,16 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Add enter key handler
+        const messageForm = document.querySelector('form');
+        const messageInput = document.querySelector('textarea');
+        
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                messageForm.submit();
+            }
+        });
         // Scroll to bottom of chat container
         const chatContainer = document.querySelector('.chat-container');
         chatContainer.scrollTop = chatContainer.scrollHeight;
