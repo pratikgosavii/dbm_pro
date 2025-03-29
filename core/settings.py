@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'accounting',
     'employees',
     'dashboard',
+    'payment',
 ]
 
 MIDDLEWARE = [
