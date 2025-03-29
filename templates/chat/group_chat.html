@@ -84,7 +84,7 @@
                             </div>
                         {% endif %}
                     </div>
-                    
+
                     <form method="post" enctype="multipart/form-data" class="message-form">
                         {% csrf_token %}
                         <div class="row">
@@ -172,14 +172,14 @@
         // Scroll to bottom of chat container
         const chatContainer = document.querySelector('.chat-container');
         chatContainer.scrollTop = chatContainer.scrollHeight;
-        
+
         // Add animations for messages
         const messages = document.querySelectorAll('.message-container');
         messages.forEach((msg, index) => {
             msg.style.opacity = 0;
             msg.style.transform = 'translateY(20px)';
             msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            
+
             setTimeout(() => {
                 msg.style.opacity = 1;
                 msg.style.transform = 'translateY(0)';
@@ -195,50 +195,50 @@
         display: flex;
         margin-bottom: 15px;
     }
-    
+
     .message-sent {
         justify-content: flex-end;
     }
-    
+
     .message-received {
         justify-content: flex-start;
     }
-    
+
     .message-bubble {
         max-width: 70%;
         padding: 10px 15px;
         border-radius: 15px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    
+
     .message-sent .message-bubble {
         background-color: #6f42c1;
         color: white;
         border-bottom-right-radius: 5px;
     }
-    
+
     .message-received .message-bubble {
         background-color: #f8f9fa;
         color: #212529;
         border-bottom-left-radius: 5px;
     }
-    
+
     .message-meta {
         font-size: 0.75rem;
         margin-top: 5px;
     }
-    
+
     .message-sent .message-meta {
         text-align: right;
         color: rgba(255,255,255,0.8);
     }
-    
+
     .message-sender {
         font-weight: bold;
         margin-bottom: 3px;
         font-size: 0.9rem;
     }
-    
+
     .avatar-circle {
         width: 40px;
         height: 40px;
@@ -251,18 +251,18 @@
         font-weight: bold;
         overflow: hidden;
     }
-    
+
     .message-avatar {
         width: 32px;
         height: 32px;
         align-self: flex-start;
         margin-top: 5px;
     }
-    
+
     .avatar-initials {
         font-size: 16px;
     }
-    
+
     .avatar-initials.small {
         font-size: 12px;
     }
