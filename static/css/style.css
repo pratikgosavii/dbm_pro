@@ -1,0 +1,13 @@
+# requirements.txt
+# This file lists the project dependencies.  You'll need to install them using pip.
+# Example: pip install -r requirements.txt
+
+# Add your project's dependencies here.  For example:
+# flask
+# requests
+# numpy
+
+
+.sidebar {
+    transition: none;
+}
