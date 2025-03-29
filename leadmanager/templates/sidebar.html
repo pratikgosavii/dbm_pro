@@ -10,7 +10,10 @@
                 <span class="text-muted small">{{ user_role|title }}</span>
             </div>
         </div>
-        
+
+        <!-- Sidebar Title -->
+        <h3 class="sidebar-title p-3 mb-3">Its Digital Business Manager</h3>
+
         <!-- Navigation Menu -->
         <ul class="sidebar-menu">
             <!-- Dashboard Link (visible to all) -->
@@ -19,7 +22,7 @@
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
             </li>
-            
+
             <!-- Leads Section (visible to Admin, Manager, Sales Rep) -->
             {% if user_role in 'admin,manager,sales_rep' %}
             <li>
@@ -28,7 +31,7 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Projects Section (visible to Admin, Operations Manager, Developer) -->
             {% if user_role in 'admin,operations_manager,developer' %}
             <li>
@@ -37,7 +40,7 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Clients Section (visible to Admin, Operations Manager) -->
             {% if user_role in 'admin,operations_manager' %}
             <li>
@@ -46,7 +49,7 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Payments Section (visible to Admin, Operations Manager) -->
             {% if user_role in 'admin,operations_manager' %}
             <li>
@@ -55,7 +58,7 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Employees Section (visible to Admin) -->
             {% if user_role == 'admin' %}
             <li>
@@ -64,14 +67,14 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Timesheet Section (visible to all) -->
             <li>
                 <a href="{% url 'employees:timesheet' %}" class="{% if '/timesheet/' in request.path %}active{% endif %}">
                     <i class="fas fa-clock me-2"></i> Timesheet
                 </a>
             </li>
-            
+
             <!-- Reports Section (visible to Admin, Manager, Operations Manager) -->
             {% if user_role in 'admin,manager,operations_manager' %}
             <li class="sidebar-dropdown">
@@ -97,7 +100,7 @@
                 </div>
             </li>
             {% endif %}
-            
+
             <!-- User Management (Admin only) -->
             {% if user_role == 'admin' %}
             <li>
@@ -106,7 +109,7 @@
                 </a>
             </li>
             {% endif %}
-            
+
             <!-- Logout Link -->
             <li>
                 <a href="{% url 'accounts:logout' %}" class="logout-btn">
@@ -126,18 +129,18 @@
                 e.preventDefault();
                 const submenu = this.nextElementSibling;
                 const isOpen = submenu.style.display === 'block';
-                
+
                 // Close all other submenus
                 document.querySelectorAll('.sidebar-submenu').forEach(menu => {
                     menu.style.display = 'none';
                 });
-                
+
                 // Toggle current submenu
                 submenu.style.display = isOpen ? 'none' : 'block';
                 this.querySelector('.fa-chevron-right').classList.toggle('rotate-90', !isOpen);
             });
         });
-        
+
         // Auto-open active submenu
         const activeDropdown = document.querySelector('.sidebar-dropdown > a.active');
         if (activeDropdown) {
@@ -153,18 +156,21 @@
         display: none;
         padding-left: 20px;
     }
-    
+
     .sidebar-submenu ul {
         list-style: none;
         padding: 0;
     }
-    
+
     .sidebar-submenu a {
         padding: 8px 15px;
         font-size: 0.9rem;
     }
-    
+
     .rotate-90 {
         transform: rotate(90deg);
+    }
+    .sidebar-title {
+        text-align: center;
     }
 </style>
