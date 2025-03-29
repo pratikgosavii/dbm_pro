@@ -40,36 +40,6 @@ function fadeOut(element, duration = 500) {
     }, interval);
 }
 
-// Add slide-down animation to elements
-function slideDown(element, duration = 500) {
-    element.style.height = '0';
-    element.style.overflow = 'hidden';
-    element.style.display = 'block';
-    element.style.transition = `height ${duration}ms ease`;
-    
-    setTimeout(() => {
-        element.style.height = element.scrollHeight + 'px';
-    }, 10);
-    
-    setTimeout(() => {
-        element.style.height = 'auto';
-    }, duration);
-}
-
-// Add slide-up animation to elements
-function slideUp(element, duration = 500) {
-    element.style.height = element.offsetHeight + 'px';
-    element.style.overflow = 'hidden';
-    element.style.transition = `height ${duration}ms ease`;
-    
-    setTimeout(() => {
-        element.style.height = '0';
-    }, 10);
-    
-    setTimeout(() => {
-        element.style.display = 'none';
-    }, duration);
-}
 
 // Add pulse animation to elements
 function pulse(element, duration = 500) {
@@ -170,11 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add animation to alert messages
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
-        alert.classList.add('slide-in');
-        
-        // Auto dismiss alerts after 5 seconds
+        //Simple fade for alerts
         setTimeout(() => {
-            fadeOut(alert);
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
     
@@ -200,10 +169,6 @@ document.head.insertAdjacentHTML('beforeend', `
         animation: fadeIn 0.5s ease forwards;
     }
     
-    .slide-in {
-        animation: slideIn 0.5s ease forwards;
-    }
-    
     .scale-in {
         animation: scaleIn 0.3s ease forwards;
     }
@@ -227,11 +192,6 @@ document.head.insertAdjacentHTML('beforeend', `
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
-    }
-    
-    @keyframes slideIn {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
     }
     
     @keyframes scaleIn {

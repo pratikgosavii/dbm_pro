@@ -723,38 +723,16 @@ textarea.form-control {
 #sidebar .list-group-item {
     border-radius: 0;
     padding: 0.75rem 1.25rem;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
     background-color: var(--dark-bg);
     color: white;
     border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.2s ease;
-}
-
-#sidebar .list-group-item:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
-    height: 100%;
-    background-color: var(--secondary);
-    transform: scaleY(0);
-    transition: transform 0.3s;
-    z-index: -1;
-}
-
-#sidebar .list-group-item:hover:before,
-#sidebar .list-group-item.active:before {
-    transform: scaleY(1);
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease, border-left-color 0.2s ease;
 }
 
 #sidebar .list-group-item:hover {
     background-color: var(--primary-dark);
-    color: white;
-    padding-left: 1.5rem;
+    border-left-color: var(--secondary);
 }
 
 #sidebar .list-group-item.active {
